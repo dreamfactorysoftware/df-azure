@@ -1,0 +1,52 @@
+{
+  "name": "dreamfactory/rave-azure",
+  "description": "Microsoft Azure package containing Azure components for the DreamFactory Rave(tm) core. ",
+  "minimum-stability": "dev",
+  "keywords": [
+    "dreamfactory",
+    "dsp",
+    "rave",
+    "azure",
+    "azure blob",
+    "azure table"
+  ],
+  "homepage": "https://www.dreamfactory.com/",
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "Arif Islam",
+      "email": "arifislam@dreamfactory.com"
+    },
+    {
+      "name": "Jerry Ablan",
+      "email": "jerryablan@dreamfactory.com"
+    },
+    {
+      "name": "Lee Hicks",
+      "email": "leehicks@dreamfactory.com"
+    }
+  ],
+  "support": {
+    "email": "support@dreamfactory.com",
+    "issues": "https://github.com/dreamfactorysoftware/rave/issues",
+    "wiki": "https://github.com/dreamfactorysoftware/rave/wiki",
+    "source": "https://github.com/dreamfactorysoftware/rave"
+  },
+  "repositories": [
+    {
+      "type": "pear",
+      "url": "http://pear.php.net"
+    }
+  ],
+  "require": {
+    "dreamfactory/php-utils": "dev-develop as dev-master",
+    "dreamfactory/rave-common": "dev-develop as dev-master",
+    "rhumsaa/array_column": "~1.1",
+    "dreamfactory/azure-sdk-for-php": "dev-develop as dev-master",
+  },
+  "autoload":{
+    "psr-4": {
+      "DreamFactory\\Azure\\":"src/"
+    }
+  }
+}
