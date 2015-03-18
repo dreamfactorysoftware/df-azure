@@ -18,9 +18,7 @@
  * limitations under the License.
  */
 
-require_once( __DIR__.'/../../../../tests/FileServiceTestCase.php' );
-
-class FileServiceAzureBlobTest extends FileServiceTestCase
+class FileServiceAzureBlobTest extends \Rave\Testing\FileServiceTestCase
 {
     protected static $staged = false;
 
