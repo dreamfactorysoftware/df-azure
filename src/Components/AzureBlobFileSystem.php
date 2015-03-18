@@ -21,11 +21,11 @@
 namespace DreamFactory\Azure\Components;
 
 use InvalidArgumentException;
-use Rave\Components\RemoteFileSystem;
+use DreamFactory\Rave\Components\RemoteFileSystem;
 use DreamFactory\Library\Utility\ArrayUtils;
-use DreamFactory\Rave\Common\Exceptions\RaveException;
-use DreamFactory\Rave\Common\Exceptions\NotFoundException;
-use DreamFactory\Rave\Common\Exceptions\InternalServerErrorException;
+use DreamFactory\Rave\Exceptions\RaveException;
+use DreamFactory\Rave\Exceptions\NotFoundException;
+use DreamFactory\Rave\Exceptions\InternalServerErrorException;
 use WindowsAzure\Blob\BlobRestProxy;
 use WindowsAzure\Common\ServicesBuilder;
 use WindowsAzure\Blob\Models\GetBlobResult;

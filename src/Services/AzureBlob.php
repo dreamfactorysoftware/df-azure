@@ -20,7 +20,7 @@
 
 namespace DreamFactory\Azure\Services;
 
-use Rave\Services\RemoteFileService;
+use DreamFactory\Rave\Services\RemoteFileService;
 use DreamFactory\Azure\Components\AzureBlobFileSystem;
 
 /**

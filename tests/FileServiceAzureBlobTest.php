@@ -32,7 +32,7 @@ class FileServiceAzureBlobTest extends FileServiceTestCase
         Artisan::call('db:seed', ['--class' => 'DreamFactory\\Azure\\Database\\Seeds\\AzureSeeder']);
         if(!$this->serviceExists('azure'))
         {
-            \Rave\Models\Service::create(
+            \DreamFactory\Rave\Models\Service::create(
                 [
                     "name"        => "azure",
                     "label"       => "Azure Blob file service",
