@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-class FileServiceAzureBlobTest extends \Rave\Testing\FileServiceTestCase
+class FileServiceAzureBlobTest extends \DreamFactory\Rave\Testing\FileServiceTestCase
 {
     protected static $staged = false;
 
@@ -27,7 +27,7 @@ class FileServiceAzureBlobTest extends \Rave\Testing\FileServiceTestCase
         parent::stage();
 
         Artisan::call('migrate', ['--path' => 'vendor/dreamfactory/rave-azure/database/migrations/']);
-        Artisan::call('db:seed', ['--class' => 'DreamFactory\\Azure\\Database\\Seeds\\AzureSeeder']);
+        Artisan::call('db:seed', ['--class' => 'DreamFactory\\Rave\\Azure\\Database\\Seeds\\AzureSeeder']);
         if(!$this->serviceExists('azure'))
         {
             \DreamFactory\Rave\Models\Service::create(

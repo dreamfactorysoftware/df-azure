@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-namespace DreamFactory\Azure\Database\Seeds;
+namespace DreamFactory\Rave\Azure\Database\Seeds;
 
 use Illuminate\Database\Seeder;
 use DreamFactory\Rave\Models\ServiceType;
@@ -26,7 +26,7 @@ use DreamFactory\Rave\Models\ServiceType;
 /**
  * Class AzureSeeder
  *
- * @package DreamFactory\Azure\Database\Seeds
+ * @package DreamFactory\Rave\Azure\Database\Seeds
  */
 class AzureSeeder extends Seeder
 {
@@ -43,8 +43,8 @@ class AzureSeeder extends Seeder
             ServiceType::create(
                 [
                     'name'           => 'azure_file',
-                    'class_name'     => "DreamFactory\\Azure\\Services\\AzureBlob",
-                    'config_handler' => "DreamFactory\\Azure\\Models\\AzureConfig",
+                    'class_name'     => "DreamFactory\\Rave\\Azure\\Services\\AzureBlob",
+                    'config_handler' => "DreamFactory\\Rave\\Azure\\Models\\AzureConfig",
                     'label'          => 'Azure file service',
                     'description'    => 'File service supporting the Microsoft Azure file system.',
                     'group'          => 'files',

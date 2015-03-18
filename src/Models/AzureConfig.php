@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-namespace DreamFactory\Azure\Models;
+namespace DreamFactory\Rave\Azure\Models;
 
 use DreamFactory\Rave\Contracts\ServiceConfigHandlerInterface;
 use DreamFactory\Rave\Models\BaseServiceConfigModel;
@@ -26,7 +26,7 @@ use DreamFactory\Rave\Models\BaseServiceConfigModel;
 /**
  * Class AzureConfig
  *
- * @package DreamFactory\Azure\Models
+ * @package DreamFactory\Rave\Azure\Models
  */
 class AzureConfig extends BaseServiceConfigModel implements ServiceConfigHandlerInterface
 {

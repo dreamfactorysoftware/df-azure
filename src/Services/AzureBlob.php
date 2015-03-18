@@ -18,15 +18,15 @@
  * limitations under the License.
  */
 
-namespace DreamFactory\Azure\Services;
+namespace DreamFactory\Rave\Azure\Services;
 
 use DreamFactory\Rave\Services\RemoteFileService;
-use DreamFactory\Azure\Components\AzureBlobFileSystem;
+use DreamFactory\Rave\Azure\Components\AzureBlobFileSystem;
 
 /**
  * Class AzureBlob
  *
- * @package DreamFactory\Azure\Services
+ * @package DreamFactory\Rave\Azure\Services
  */
 class AzureBlob extends RemoteFileService
 {

@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-namespace DreamFactory\Azure\Components;
+namespace DreamFactory\Rave\Azure\Components;
 
 use InvalidArgumentException;
 use DreamFactory\Rave\Components\RemoteFileSystem;
@@ -38,7 +38,7 @@ use WindowsAzure\Blob\Models\GetBlobPropertiesResult;
 /**
  * Class AzureBlobFileSystem
  *
- * @package DreamFactory\Azure\Components
+ * @package DreamFactory\Rave\Azure\Components
  */
 class AzureBlobFileSystem extends RemoteFileSystem
 {
