@@ -37,21 +37,38 @@ class AzureSeeder extends Seeder
      */
     public function run()
     {
-        if ( !ServiceType::whereName( "azure_file" )->count() )
+        if ( !ServiceType::whereName( "azure_blob" )->count() )
         {
             // Add the service type
             ServiceType::create(
                 [
-                    'name'           => 'azure_file',
-                    'class_name'     => "DreamFactory\\Rave\\Azure\\Services\\AzureBlob",
+                    'name'           => 'azure_blob',
+                    'class_name'     => "DreamFactory\\Rave\\Azure\\Services\\Blob",
                     'config_handler' => "DreamFactory\\Rave\\Azure\\Models\\AzureConfig",
-                    'label'          => 'Azure file service',
-                    'description'    => 'File service supporting the Microsoft Azure file system.',
+                    'label'          => 'Azure Blob Storage',
+                    'description'    => 'File service supporting the Microsoft Azure Blob Storage.',
                     'group'          => 'files',
                     'singleton'      => 1
                 ]
             );
-            $this->command->info( 'Microsoft AzureBlob file service type seeded!' );
+            $this->command->info( 'Microsoft Azure Blob file service type seeded!' );
+        }
+
+        if ( !ServiceType::whereName( "azure_table" )->count() )
+        {
+            // Add the service type
+            ServiceType::create(
+                [
+                    'name'           => 'azure_table',
+                    'class_name'     => "DreamFactory\\Rave\\Azure\\Services\\Table",
+                    'config_handler' => "DreamFactory\\Rave\\Azure\\Models\\AzureConfig",
+                    'label'          => 'Azure Table Storage',
+                    'description'    => 'NoSql database service supporting the Microsoft Azure storage system.',
+                    'group'          => 'NoSql Databases',
+                    'singleton'      => 1
+                ]
+            );
+            $this->command->info( 'Microsoft Azure Table database service type seeded!' );
         }
     }
 }

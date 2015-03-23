@@ -24,11 +24,11 @@ use DreamFactory\Rave\Services\RemoteFileService;
 use DreamFactory\Rave\Azure\Components\AzureBlobFileSystem;
 
 /**
- * Class AzureBlob
+ * Class Blob
  *
  * @package DreamFactory\Rave\Azure\Services
  */
-class AzureBlob extends RemoteFileService
+class Blob extends RemoteFileService
 {
     /**
      * {@inheritdoc}
