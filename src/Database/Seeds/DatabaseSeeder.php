@@ -24,11 +24,11 @@ use Illuminate\Database\Seeder;
 use DreamFactory\Rave\Models\ServiceType;
 
 /**
- * Class AzureSeeder
+ * Class DatabaseSeeder
  *
  * @package DreamFactory\Rave\Azure\Database\Seeds
  */
-class AzureSeeder extends Seeder
+class DatabaseSeeder extends Seeder
 {
     /**
      * Run the database seeds.
