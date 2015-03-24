@@ -27,7 +27,7 @@ class FileServiceAzureBlobTest extends \DreamFactory\Rave\Testing\FileServiceTes
         parent::stage();
 
         Artisan::call('migrate', ['--path' => 'vendor/dreamfactory/rave-azure/database/migrations/']);
-        Artisan::call('db:seed', ['--class' => 'DreamFactory\\Rave\\Azure\\Database\\Seeds\\AzureSeeder']);
+        Artisan::call('db:seed', ['--class' => 'DreamFactory\\Rave\\Azure\\Database\\Seeds\\DatabaseSeeder']);
         if(!$this->serviceExists('azure'))
         {
             \DreamFactory\Rave\Models\Service::create(
