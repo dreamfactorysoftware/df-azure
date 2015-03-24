@@ -36,7 +36,7 @@ class FileServiceAzureBlobTest extends \DreamFactory\Rave\Testing\FileServiceTes
                     "label"       => "Azure Blob file service",
                     "description" => "Azure Blob file service for unit test",
                     "is_active"   => 1,
-                    "type"        => "azure_file",
+                    "type"        => "azure_blob",
                     "config"      => [
                         'protocol' => 'https',
                         'account_name' => env('AB_ACCOUNT_NAME'),
