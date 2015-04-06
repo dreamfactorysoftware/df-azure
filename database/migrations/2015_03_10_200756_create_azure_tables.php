@@ -22,7 +22,7 @@ class CreateAzureTables extends Migration
             function ( Blueprint $t )
             {
                 $t->integer( 'service_id' )->unsigned()->primary();
-                $t->foreign( 'service_id' )->references( 'id' )->on( 'services' )->onDelete( 'cascade' );
+                $t->foreign( 'service_id' )->references( 'id' )->on( 'service' )->onDelete( 'cascade' );
                 $t->longText( 'account_name' )->nullable();
                 $t->longText( 'account_key' )->nullable();
                 $t->string( 'protocol' )->nullable();
