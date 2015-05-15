@@ -20,7 +20,6 @@
 
 namespace DreamFactory\Rave\Azure\Models;
 
-use DreamFactory\Rave\Contracts\ServiceConfigHandlerInterface;
 use DreamFactory\Rave\Models\BaseServiceConfigModel;
 
 /**
@@ -28,7 +27,7 @@ use DreamFactory\Rave\Models\BaseServiceConfigModel;
  *
  * @package DreamFactory\Rave\Azure\Models
  */
-class AzureConfig extends BaseServiceConfigModel implements ServiceConfigHandlerInterface
+class AzureConfig extends BaseServiceConfigModel
 {
     protected $table = 'azure_config';
 

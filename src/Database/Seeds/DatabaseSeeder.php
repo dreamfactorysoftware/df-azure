@@ -17,58 +17,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 namespace DreamFactory\Rave\Azure\Database\Seeds;
 
-use Illuminate\Database\Seeder;
-use DreamFactory\Rave\Models\ServiceType;
+use DreamFactory\Rave\Database\Seeds\BaseModelSeeder;
 
-/**
- * Class DatabaseSeeder
- *
- * @package DreamFactory\Rave\Azure\Database\Seeds
- */
-class DatabaseSeeder extends Seeder
+class DatabaseSeeder extends BaseModelSeeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
-    public function run()
-    {
-        if ( !ServiceType::whereName( "azure_blob" )->count() )
-        {
-            // Add the service type
-            ServiceType::create(
-                [
-                    'name'           => 'azure_blob',
-                    'class_name'     => "DreamFactory\\Rave\\Azure\\Services\\Blob",
-                    'config_handler' => "DreamFactory\\Rave\\Azure\\Models\\AzureConfig",
-                    'label'          => 'Azure Blob Storage',
-                    'description'    => 'File service supporting the Microsoft Azure Blob Storage.',
-                    'group'          => 'files',
-                    'singleton'      => 1
-                ]
-            );
-            $this->command->info( 'Microsoft Azure Blob file service type seeded!' );
-        }
+    protected $modelClass = 'DreamFactory\\Rave\\Models\\ServiceType';
 
-        if ( !ServiceType::whereName( "azure_table" )->count() )
-        {
-            // Add the service type
-            ServiceType::create(
-                [
-                    'name'           => 'azure_table',
-                    'class_name'     => "DreamFactory\\Rave\\Azure\\Services\\Table",
-                    'config_handler' => "DreamFactory\\Rave\\Azure\\Models\\AzureConfig",
-                    'label'          => 'Azure Table Storage',
-                    'description'    => 'NoSql database service supporting the Microsoft Azure storage system.',
-                    'group'          => 'NoSql Databases',
-                    'singleton'      => 1
-                ]
-            );
-            $this->command->info( 'Microsoft Azure Table database service type seeded!' );
-        }
-    }
+    protected $records = [
+        [
+            'name'           => 'azure_blob',
+            'class_name'     => "DreamFactory\\Rave\\Azure\\Services\\Blob",
+            'config_handler' => "DreamFactory\\Rave\\Azure\\Models\\AzureConfig",
+            'label'          => 'Azure Blob Storage',
+            'description'    => 'File service supporting the Microsoft Azure Blob Storage.',
+            'group'          => 'files',
+            'singleton'      => 1
+        ],
+        [
+            'name'           => 'azure_table',
+            'class_name'     => "DreamFactory\\Rave\\Azure\\Services\\Table",
+            'config_handler' => "DreamFactory\\Rave\\Azure\\Models\\AzureConfig",
+            'label'          => 'Azure Table Storage',
+            'description'    => 'NoSql database service supporting the Microsoft Azure storage system.',
+            'group'          => 'NoSql Databases',
+            'singleton'      => 1
+        ]
+    ];
 }
