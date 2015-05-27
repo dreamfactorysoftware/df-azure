@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of the DreamFactory Rave(tm)
  *
@@ -17,18 +18,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 class FileServiceAzureBlobTest extends \DreamFactory\Rave\Testing\FileServiceTestCase
 {
     protected static $staged = false;
+
+    protected $serviceId = 'azure';
 
     public function stage()
     {
         parent::stage();
 
-        Artisan::call('migrate', ['--path' => 'vendor/dreamfactory/rave-azure/database/migrations/']);
-        Artisan::call('db:seed', ['--class' => 'DreamFactory\\Rave\\Azure\\Database\\Seeds\\DatabaseSeeder']);
-        if(!$this->serviceExists('azure'))
+        Artisan::call( 'migrate', [ '--path' => 'vendor/dreamfactory/rave-azure/database/migrations/' ] );
+        Artisan::call( 'db:seed', [ '--class' => 'DreamFactory\\Rave\\Azure\\Database\\Seeds\\DatabaseSeeder' ] );
+        if ( !$this->serviceExists( 'azure' ) )
         {
             \DreamFactory\Rave\Models\Service::create(
                 [
@@ -38,19 +40,13 @@ class FileServiceAzureBlobTest extends \DreamFactory\Rave\Testing\FileServiceTes
                     "is_active"   => 1,
                     "type"        => "azure_blob",
                     "config"      => [
-                        'protocol' => 'https',
-                        'account_name' => env('AB_ACCOUNT_NAME'),
-                        'account_key' => env('AB_ACCOUNT_KEY')
+                        'protocol'     => 'https',
+                        'account_name' => env( 'AB_ACCOUNT_NAME' ),
+                        'account_key'  => env( 'AB_ACCOUNT_KEY' )
                     ]
                 ]
             );
         }
-    }
-
-    protected function setService()
-    {
-        $this->service = 'azure';
-        $this->prefix = $this->prefix.'/'.$this->service;
     }
 
     /************************************************
@@ -61,6 +57,6 @@ class FileServiceAzureBlobTest extends \DreamFactory\Rave\Testing\FileServiceTes
     {
         //This test currently doesn't pass. Unlike local and S3 file services,
         //Azure blob service returns 409 (already exists) if the resource already exists
-        $this->assertEquals(1,1);
+        $this->assertEquals( 1, 1 );
     }
 }
