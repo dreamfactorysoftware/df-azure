@@ -1,9 +1,9 @@
 <?php
 
 /**
- * This file is part of the DreamFactory Rave(tm)
+ * This file is part of the DreamFactory(tm)
  *
- * DreamFactory Rave(tm) <http://github.com/dreamfactorysoftware/rave>
+ * DreamFactory(tm) <http://github.com/dreamfactorysoftware/rave>
  * Copyright 2012-2014 DreamFactory Software, Inc. <support@dreamfactory.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class FileServiceAzureBlobTest extends \DreamFactory\Rave\Testing\FileServiceTestCase
+class FileServiceAzureBlobTest extends \DreamFactory\Core\Testing\FileServiceTestCase
 {
     protected static $staged = false;
 
@@ -28,11 +28,11 @@ class FileServiceAzureBlobTest extends \DreamFactory\Rave\Testing\FileServiceTes
     {
         parent::stage();
 
-        Artisan::call( 'migrate', [ '--path' => 'vendor/dreamfactory/rave-azure/database/migrations/' ] );
-        Artisan::call( 'db:seed', [ '--class' => 'DreamFactory\\Rave\\Azure\\Database\\Seeds\\DatabaseSeeder' ] );
+        Artisan::call( 'migrate', [ '--path' => 'vendor/dreamfactory/df-azure/database/migrations/' ] );
+        Artisan::call( 'db:seed', [ '--class' => 'DreamFactory\\Core\\Azure\\Database\\Seeds\\DatabaseSeeder' ] );
         if ( !$this->serviceExists( 'azure' ) )
         {
-            \DreamFactory\Rave\Models\Service::create(
+            \DreamFactory\Core\Models\Service::create(
                 [
                     "name"        => "azure",
                     "label"       => "Azure Blob file service",

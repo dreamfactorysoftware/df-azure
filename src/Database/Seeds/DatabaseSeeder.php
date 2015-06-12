@@ -1,8 +1,8 @@
 <?php
 /**
- * This file is part of the DreamFactory Rave(tm)
+ * This file is part of the DreamFactory(tm)
  *
- * DreamFactory Rave(tm) <http://github.com/dreamfactorysoftware/rave>
+ * DreamFactory(tm) <http://github.com/dreamfactorysoftware/rave>
  * Copyright 2012-2014 DreamFactory Software, Inc. <support@dreamfactory.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,19 +17,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace DreamFactory\Rave\Azure\Database\Seeds;
+namespace DreamFactory\Core\Azure\Database\Seeds;
 
-use DreamFactory\Rave\Database\Seeds\BaseModelSeeder;
+use DreamFactory\Core\Database\Seeds\BaseModelSeeder;
 
 class DatabaseSeeder extends BaseModelSeeder
 {
-    protected $modelClass = 'DreamFactory\\Rave\\Models\\ServiceType';
+    protected $modelClass = 'DreamFactory\\Core\\Models\\ServiceType';
 
     protected $records = [
         [
             'name'           => 'azure_blob',
-            'class_name'     => "DreamFactory\\Rave\\Azure\\Services\\Blob",
-            'config_handler' => "DreamFactory\\Rave\\Azure\\Models\\AzureConfig",
+            'class_name'     => "DreamFactory\\Core\\Azure\\Services\\Blob",
+            'config_handler' => "DreamFactory\\Core\\Azure\\Models\\AzureConfig",
             'label'          => 'Azure Blob Storage',
             'description'    => 'File service supporting the Microsoft Azure Blob Storage.',
             'group'          => 'files',
@@ -37,8 +37,8 @@ class DatabaseSeeder extends BaseModelSeeder
         ],
         [
             'name'           => 'azure_table',
-            'class_name'     => "DreamFactory\\Rave\\Azure\\Services\\Table",
-            'config_handler' => "DreamFactory\\Rave\\Azure\\Models\\AzureConfig",
+            'class_name'     => "DreamFactory\\Core\\Azure\\Services\\Table",
+            'config_handler' => "DreamFactory\\Core\\Azure\\Models\\AzureConfig",
             'label'          => 'Azure Table Storage',
             'description'    => 'NoSql database service supporting the Microsoft Azure storage system.',
             'group'          => 'NoSql Databases',

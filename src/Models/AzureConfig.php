@@ -1,8 +1,8 @@
 <?php
 /**
- * This file is part of the DreamFactory Rave(tm)
+ * This file is part of the DreamFactory(tm)
  *
- * DreamFactory Rave(tm) <http://github.com/dreamfactorysoftware/rave>
+ * DreamFactory(tm) <http://github.com/dreamfactorysoftware/rave>
  * Copyright 2012-2014 DreamFactory Software, Inc. <support@dreamfactory.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,14 +18,14 @@
  * limitations under the License.
  */
 
-namespace DreamFactory\Rave\Azure\Models;
+namespace DreamFactory\Core\Azure\Models;
 
-use DreamFactory\Rave\Models\BaseServiceConfigModel;
+use DreamFactory\Core\Models\BaseServiceConfigModel;
 
 /**
  * Class AzureConfig
  *
- * @package DreamFactory\Rave\Azure\Models
+ * @package DreamFactory\Core\Azure\Models
  */
 class AzureConfig extends BaseServiceConfigModel
 {

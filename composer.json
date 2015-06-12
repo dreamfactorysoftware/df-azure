@@ -1,11 +1,11 @@
 {
-  "name": "dreamfactory/rave-azure",
-  "description": "Microsoft Azure package containing Azure components for the DreamFactory Rave(tm) core. ",
+  "name": "dreamfactory/df-azure",
+  "description": "Microsoft Azure package containing Azure services for the DreamFactory Platform 2.0. ",
   "minimum-stability": "dev",
   "keywords": [
     "dreamfactory",
     "dsp",
-    "rave",
+    "rest",
     "azure",
     "azure blob",
     "azure table"
@@ -28,9 +28,9 @@
   ],
   "support": {
     "email": "support@dreamfactory.com",
-    "issues": "https://github.com/dreamfactorysoftware/rave/issues",
-    "wiki": "https://github.com/dreamfactorysoftware/rave/wiki",
-    "source": "https://github.com/dreamfactorysoftware/rave"
+    "source": "https://github.com/dreamfactorysoftware/df-azure",
+    "issues": "https://github.com/dreamfactorysoftware/df-azure/issues",
+    "wiki": "https://wiki.dreamfactory.com"
   },
   "repositories": [
     {
@@ -39,12 +39,12 @@
     }
   ],
   "require": {
-    "dreamfactory/rave": "dev-develop as dev-master",
+    "dreamfactory/df-core": "dev-develop as dev-master",
     "dreamfactory/azure-sdk-for-php": "dev-develop as dev-master"
   },
   "autoload":{
     "psr-4": {
-      "DreamFactory\\Rave\\Azure\\":"src/"
+      "DreamFactory\\Core\\Azure\\":"src/"
     }
   }
 }

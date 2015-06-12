@@ -1,8 +1,8 @@
 <?php
 /**
- * This file is part of the DreamFactory Rave(tm)
+ * This file is part of the DreamFactory(tm)
  *
- * DreamFactory Rave(tm) <http://github.com/dreamfactorysoftware/rave>
+ * DreamFactory(tm) <http://github.com/dreamfactorysoftware/rave>
  * Copyright 2012-2014 DreamFactory Software, Inc. <support@dreamfactory.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,14 +18,14 @@
  * limitations under the License.
  */
 
-namespace DreamFactory\Rave\Azure\Components;
+namespace DreamFactory\Core\Azure\Components;
 
 use InvalidArgumentException;
-use DreamFactory\Rave\Components\RemoteFileSystem;
+use DreamFactory\Core\Components\RemoteFileSystem;
 use DreamFactory\Library\Utility\ArrayUtils;
-use DreamFactory\Rave\Exceptions\RaveException;
-use DreamFactory\Rave\Exceptions\NotFoundException;
-use DreamFactory\Rave\Exceptions\InternalServerErrorException;
+use DreamFactory\Core\Exceptions\RaveException;
+use DreamFactory\Core\Exceptions\NotFoundException;
+use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use WindowsAzure\Blob\BlobRestProxy;
 use WindowsAzure\Common\ServicesBuilder;
 use WindowsAzure\Blob\Models\GetBlobResult;
@@ -38,7 +38,7 @@ use WindowsAzure\Blob\Models\GetBlobPropertiesResult;
 /**
  * Class AzureBlobFileSystem
  *
- * @package DreamFactory\Rave\Azure\Components
+ * @package DreamFactory\Core\Azure\Components
  */
 class AzureBlobFileSystem extends RemoteFileSystem
 {

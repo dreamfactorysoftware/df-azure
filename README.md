@@ -1,2 +1,2 @@
-# rave-azure
-Microsoft Azure package containing Azure components for the DreamFactory Rave(tm) core.
+# df-azure
+Microsoft Azure package containing Azure components for the DreamFactory(tm) core.

@@ -1,8 +1,8 @@
 <?php
 /**
- * This file is part of the DreamFactory Rave(tm)
+ * This file is part of the DreamFactory(tm)
  *
- * DreamFactory Rave(tm) <http://github.com/dreamfactorysoftware/rave>
+ * DreamFactory(tm) <http://github.com/dreamfactorysoftware/rave>
  * Copyright 2012-2014 DreamFactory Software, Inc. <support@dreamfactory.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,15 +18,15 @@
  * limitations under the License.
  */
 
-namespace DreamFactory\Rave\Azure\Resources;
+namespace DreamFactory\Core\Azure\Resources;
 
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Library\Utility\Inflector;
-use DreamFactory\Rave\Exceptions\BadRequestException;
-use DreamFactory\Rave\Exceptions\InternalServerErrorException;
-use DreamFactory\Rave\Resources\BaseNoSqlDbSchemaResource;
-use DreamFactory\Rave\Utility\DbUtilities;
-use DreamFactory\Rave\Azure\Services\Table;
+use DreamFactory\Core\Exceptions\BadRequestException;
+use DreamFactory\Core\Exceptions\InternalServerErrorException;
+use DreamFactory\Core\Resources\BaseNoSqlDbSchemaResource;
+use DreamFactory\Core\Utility\DbUtilities;
+use DreamFactory\Core\Azure\Services\Table;
 
 class Schema extends BaseNoSqlDbSchemaResource
 {
