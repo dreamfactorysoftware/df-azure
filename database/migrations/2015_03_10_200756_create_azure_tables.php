@@ -19,13 +19,12 @@ class CreateAzureTables extends Migration
         // Azure Service Configuration
         Schema::create(
             'azure_config',
-            function ( Blueprint $t )
-            {
-                $t->integer( 'service_id' )->unsigned()->primary();
-                $t->foreign( 'service_id' )->references( 'id' )->on( 'service' )->onDelete( 'cascade' );
-                $t->longText( 'account_name' )->nullable();
-                $t->longText( 'account_key' )->nullable();
-                $t->string( 'protocol' )->nullable();
+            function (Blueprint $t){
+                $t->integer('service_id')->unsigned()->primary();
+                $t->foreign('service_id')->references('id')->on('service')->onDelete('cascade');
+                $t->longText('account_name')->nullable();
+                $t->longText('account_key')->nullable();
+                $t->string('protocol')->nullable();
             }
         );
     }
@@ -38,7 +37,6 @@ class CreateAzureTables extends Migration
     public function down()
     {
         // Azure Service Configuration
-        Schema::dropIfExists( 'azure_config' );
+        Schema::dropIfExists('azure_config');
     }
-
 }
