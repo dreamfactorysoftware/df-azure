@@ -11,7 +11,7 @@ class DatabaseSeeder extends BaseModelSeeder
         [
             'name'           => 'azure_blob',
             'class_name'     => "DreamFactory\\Core\\Azure\\Services\\Blob",
-            'config_handler' => "DreamFactory\\Core\\Azure\\Models\\AzureConfig",
+            'config_handler' => "DreamFactory\\Core\\Azure\\Models\\AzureBlobConfig",
             'label'          => 'Azure Blob Storage',
             'description'    => 'File service supporting the Microsoft Azure Blob Storage.',
             'group'          => 'files',
