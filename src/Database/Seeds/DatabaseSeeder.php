@@ -1,17 +1,22 @@
 <?php
 namespace DreamFactory\Core\Azure\Database\Seeds;
 
+use DreamFactory\Core\Azure\Components\AzureBlobConfig;
+use DreamFactory\Core\Azure\Models\AzureConfig;
+use DreamFactory\Core\Azure\Services\Blob;
+use DreamFactory\Core\Azure\Services\Table;
 use DreamFactory\Core\Database\Seeds\BaseModelSeeder;
+use DreamFactory\Core\Models\ServiceType;
 
 class DatabaseSeeder extends BaseModelSeeder
 {
-    protected $modelClass = 'DreamFactory\\Core\\Models\\ServiceType';
+    protected $modelClass = ServiceType::class;
 
     protected $records = [
         [
             'name'           => 'azure_blob',
-            'class_name'     => "DreamFactory\\Core\\Azure\\Services\\Blob",
-            'config_handler' => "DreamFactory\\Core\\Azure\\Models\\AzureBlobConfig",
+            'class_name'     => Blob::class,
+            'config_handler' => AzureBlobConfig::class,
             'label'          => 'Azure Blob Storage',
             'description'    => 'File service supporting the Microsoft Azure Blob Storage.',
             'group'          => 'files',
@@ -19,8 +24,8 @@ class DatabaseSeeder extends BaseModelSeeder
         ],
         [
             'name'           => 'azure_table',
-            'class_name'     => "DreamFactory\\Core\\Azure\\Services\\Table",
-            'config_handler' => "DreamFactory\\Core\\Azure\\Models\\AzureConfig",
+            'class_name'     => Table::class,
+            'config_handler' => AzureConfig::class,
             'label'          => 'Azure Table Storage',
             'description'    => 'NoSql database service supporting the Microsoft Azure storage system.',
             'group'          => 'NoSql Databases',
