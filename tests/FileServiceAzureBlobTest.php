@@ -18,7 +18,7 @@ class FileServiceAzureBlobTest extends \DreamFactory\Core\Testing\FileServiceTes
                     "name"        => "azure",
                     "label"       => "Azure Blob file service",
                     "description" => "Azure Blob file service for unit test",
-                    "is_active"   => 1,
+                    "is_active"   => true,
                     "type"        => "azure_blob",
                     "config"      => [
                         'protocol'     => 'https',

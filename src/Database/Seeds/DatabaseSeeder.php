@@ -20,7 +20,7 @@ class DatabaseSeeder extends BaseModelSeeder
             'label'          => 'Azure Blob Storage',
             'description'    => 'File service supporting the Microsoft Azure Blob Storage.',
             'group'          => 'files',
-            'singleton'      => 1
+            'singleton'      => false
         ],
         [
             'name'           => 'azure_table',
@@ -29,7 +29,7 @@ class DatabaseSeeder extends BaseModelSeeder
             'label'          => 'Azure Table Storage',
             'description'    => 'NoSql database service supporting the Microsoft Azure storage system.',
             'group'          => 'NoSql Databases',
-            'singleton'      => 1
+            'singleton'      => false
         ]
     ];
 }
