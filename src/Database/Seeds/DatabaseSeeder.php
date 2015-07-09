@@ -6,6 +6,7 @@ use DreamFactory\Core\Azure\Models\AzureConfig;
 use DreamFactory\Core\Azure\Services\Blob;
 use DreamFactory\Core\Azure\Services\Table;
 use DreamFactory\Core\Database\Seeds\BaseModelSeeder;
+use DreamFactory\Core\Enums\ServiceTypeGroups;
 use DreamFactory\Core\Models\ServiceType;
 
 class DatabaseSeeder extends BaseModelSeeder
@@ -19,7 +20,7 @@ class DatabaseSeeder extends BaseModelSeeder
             'config_handler' => AzureBlobConfig::class,
             'label'          => 'Azure Blob Storage',
             'description'    => 'File service supporting the Microsoft Azure Blob storage.',
-            'group'          => 'File',
+            'group'          => ServiceTypeGroups::FILE,
             'singleton'      => false
         ],
         [
@@ -28,7 +29,7 @@ class DatabaseSeeder extends BaseModelSeeder
             'config_handler' => AzureConfig::class,
             'label'          => 'Azure Table Storage',
             'description'    => 'Database service supporting the Microsoft Azure Table storage.',
-            'group'          => 'Database',
+            'group'          => ServiceTypeGroups::DATABASE,
             'singleton'      => false
         ]
     ];
