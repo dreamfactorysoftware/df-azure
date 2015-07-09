@@ -18,8 +18,8 @@ class DatabaseSeeder extends BaseModelSeeder
             'class_name'     => Blob::class,
             'config_handler' => AzureBlobConfig::class,
             'label'          => 'Azure Blob Storage',
-            'description'    => 'File service supporting the Microsoft Azure Blob Storage.',
-            'group'          => 'files',
+            'description'    => 'File service supporting the Microsoft Azure Blob storage.',
+            'group'          => 'File',
             'singleton'      => false
         ],
         [
@@ -27,8 +27,8 @@ class DatabaseSeeder extends BaseModelSeeder
             'class_name'     => Table::class,
             'config_handler' => AzureConfig::class,
             'label'          => 'Azure Table Storage',
-            'description'    => 'NoSql database service supporting the Microsoft Azure storage system.',
-            'group'          => 'NoSql Databases',
+            'description'    => 'Database service supporting the Microsoft Azure Table storage.',
+            'group'          => 'Database',
             'singleton'      => false
         ]
     ];
