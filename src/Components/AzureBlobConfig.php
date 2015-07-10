@@ -2,10 +2,9 @@
 namespace DreamFactory\Core\Azure\Components;
 
 use DreamFactory\Core\Azure\Models\AzureConfig;
+use DreamFactory\Core\Contracts\ServiceConfigHandlerInterface;
 use DreamFactory\Core\Models\FilePublicPath;
 use DreamFactory\Library\Utility\ArrayUtils;
-use DreamFactory\Core\SqlDbCore\ColumnSchema;
-use DreamFactory\Core\Contracts\ServiceConfigHandlerInterface;
 
 class AzureBlobConfig implements ServiceConfigHandlerInterface
 {
@@ -110,37 +109,18 @@ class AzureBlobConfig implements ServiceConfigHandlerInterface
     {
         $azureConfig = new AzureConfig();
         $pathConfig = new FilePublicPath();
-        $out = [];
+        $out = null;
 
-        $azureSchema = $azureConfig->getTableSchema();
-        if ($azureSchema) {
-            foreach ($azureSchema->columns as $name => $column) {
-                if ('service_id' === $name) {
-                    continue;
-                }
+        $azureSchema = $azureConfig->getConfigSchema();
+        $pathSchema = $pathConfig->getConfigSchema();
 
-                /** @var ColumnSchema $column */
-                $out[$name] = $column->toArray();
-            }
-            //return $out;
+        if (!empty($azureSchema)) {
+            $out = $azureSchema;
+        }
+        if (!empty($pathSchema)) {
+            $out = ($out) ? array_merge($out, $pathSchema) : $pathSchema;
         }
 
-        $pathSchema = $pathConfig->getTableSchema();
-        if ($pathSchema) {
-            foreach ($pathSchema->columns as $name => $column) {
-                if ('service_id' === $name) {
-                    continue;
-                }
-
-                /** @var ColumnSchema $column */
-                $out[$name] = $column->toArray();
-            }
-        }
-
-        if (!empty($out)) {
-            return $out;
-        }
-
-        return null;
+        return $out;
     }
 }
