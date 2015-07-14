@@ -87,7 +87,7 @@ class Table extends BaseDbTableResource
         $_names = $this->service->getTables();
 
         if (empty($fields)) {
-            return ['resource' => $_names];
+            return $this->cleanResources($_names);
         }
 
         $_extras =
@@ -116,7 +116,7 @@ class Table extends BaseDbTableResource
             $_tables[] = ['name' => $name, 'label' => $label, 'plural' => $plural];
         }
 
-        return $this->makeResourceList($_tables, 'name', $fields, 'resource');
+        return $this->cleanResources($_tables, 'name', $fields);
     }
 
     /**
