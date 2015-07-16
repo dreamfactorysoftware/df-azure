@@ -58,6 +58,8 @@ class AzureBlobFileSystem extends RemoteFileSystem
     public function __construct($config)
     {
         $_credentials = $config;
+        $this->container = ArrayUtils::get($config, 'container');
+
         //Session::replaceLookups( $_credentials, true );
 
         $_connectionString = ArrayUtils::get($_credentials, 'connection_string');
@@ -78,6 +80,10 @@ class AzureBlobFileSystem extends RemoteFileSystem
 
         try {
             $this->_blobConn = ServicesBuilder::getInstance()->createBlobService($_connectionString);
+
+            if (!$this->containerExists($this->container)) {
+                $this->createContainer(['name' => $this->container]);
+            }
         } catch (\Exception $_ex) {
             throw new InternalServerErrorException("Windows Azure Blob Service Exception:\n{$_ex->getMessage()}");
         }
@@ -113,6 +119,10 @@ class AzureBlobFileSystem extends RemoteFileSystem
     public function listContainers($include_properties = false)
     {
         $this->checkConnection();
+
+        if (!empty($this->container)) {
+            return $this->listResource($include_properties);
+        }
 
         /** @var \WindowsAzure\Blob\Models\ListContainersResult $result */
         $result = $this->_blobConn->listContainers();
@@ -436,7 +446,10 @@ class AzureBlobFileSystem extends RemoteFileSystem
 
         foreach ($prefixes as $blob) {
             $out[] = array(
-                'name' => $blob->getName()
+                'name'           => $blob->getName(),
+                'content_type'   => null,
+                'content_length' => 0,
+                'last_modified'  => null
             );
         }
 

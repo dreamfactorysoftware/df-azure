@@ -1,5 +1,7 @@
 <?php
 
+use DreamFactory\Library\Utility\Enums\Verbs;
+
 class FileServiceAzureBlobTest extends \DreamFactory\Core\Testing\FileServiceTestCase
 {
     protected static $staged = false;
@@ -23,7 +25,8 @@ class FileServiceAzureBlobTest extends \DreamFactory\Core\Testing\FileServiceTes
                     "config"      => [
                         'protocol'     => 'https',
                         'account_name' => env('AB_ACCOUNT_NAME'),
-                        'account_key'  => env('AB_ACCOUNT_KEY')
+                        'account_key'  => env('AB_ACCOUNT_KEY'),
+                        'container'    => env('AB_CONTAINER')
                     ]
                 ]
             );

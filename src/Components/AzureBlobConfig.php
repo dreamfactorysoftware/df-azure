@@ -2,12 +2,15 @@
 namespace DreamFactory\Core\Azure\Components;
 
 use DreamFactory\Core\Azure\Models\AzureConfig;
+use DreamFactory\Core\Components\FileServiceWithContainer;
 use DreamFactory\Core\Contracts\ServiceConfigHandlerInterface;
 use DreamFactory\Core\Models\FilePublicPath;
 use DreamFactory\Library\Utility\ArrayUtils;
 
 class AzureBlobConfig implements ServiceConfigHandlerInterface
 {
+    use FileServiceWithContainer;
+
     /**
      * @param int $id
      *
@@ -47,7 +50,8 @@ class AzureBlobConfig implements ServiceConfigHandlerInterface
         $azureConfig = AzureConfig::find($id);
         $pathConfig = FilePublicPath::find($id);
         $configPath = [
-            'public_path' => ArrayUtils::get($config, 'public_path')
+            'public_path' => ArrayUtils::get($config, 'public_path'),
+            'container'   => ArrayUtils::get($config, 'container')
         ];
         $configAzure = [
             'service_id'   => ArrayUtils::get($config, 'service_id'),
@@ -100,27 +104,5 @@ class AzureBlobConfig implements ServiceConfigHandlerInterface
     public static function getAvailableConfigs()
     {
         return null;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getConfigSchema()
-    {
-        $azureConfig = new AzureConfig();
-        $pathConfig = new FilePublicPath();
-        $out = null;
-
-        $azureSchema = $azureConfig->getConfigSchema();
-        $pathSchema = $pathConfig->getConfigSchema();
-
-        if (!empty($azureSchema)) {
-            $out = $azureSchema;
-        }
-        if (!empty($pathSchema)) {
-            $out = ($out) ? array_merge($out, $pathSchema) : $pathSchema;
-        }
-
-        return $out;
     }
 }
