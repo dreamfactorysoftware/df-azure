@@ -193,72 +193,43 @@ class Table extends BaseNoSqlDbService
     /**
      * {@inheritdoc}
      */
-    public function getResources($only_handlers = false)
+    public function getAccessList()
     {
-        if (!$only_handlers) {
-            if ($this->request->getParameterAsBool('as_access_component')) {
-                $_resources = [];
+        $_resources = [];
 
 //        $refresh = $this->request->getParameterAsBool( 'refresh' );
 
-                $_name = Schema::RESOURCE_NAME . '/';
-                $_access = $this->getPermissions($_name);
-                if (!empty($_access)) {
-                    $_resources[] = $_name;
-                    $_resources[] = $_name . '*';
-                }
+        $_name = Schema::RESOURCE_NAME . '/';
+        $_access = $this->getPermissions($_name);
+        if (!empty($_access)) {
+            $_resources[] = $_name;
+            $_resources[] = $_name . '*';
+        }
 
-                $_result = $this->getTables();
-                foreach ($_result as $_name) {
-                    $_name = Schema::RESOURCE_NAME . '/' . $_name;
-                    $_access = $this->getPermissions($_name);
-                    if (!empty($_access)) {
-                        $_resources[] = $_name;
-                    }
-                }
-
-                $_name = TableResource::RESOURCE_NAME . '/';
-                $_access = $this->getPermissions($_name);
-                if (!empty($_access)) {
-                    $_resources[] = $_name;
-                    $_resources[] = $_name . '*';
-                }
-
-                foreach ($_result as $_name) {
-                    $_name = TableResource::RESOURCE_NAME . '/' . $_name;
-                    $_access = $this->getPermissions($_name);
-                    if (!empty($_access)) {
-                        $_resources[] = $_name;
-                    }
-                }
-
-                return $_resources;
+        $_result = $this->getTables();
+        foreach ($_result as $_name) {
+            $_name = Schema::RESOURCE_NAME . '/' . $_name;
+            $_access = $this->getPermissions($_name);
+            if (!empty($_access)) {
+                $_resources[] = $_name;
             }
         }
 
-        return $this->resources;
+        $_name = TableResource::RESOURCE_NAME . '/';
+        $_access = $this->getPermissions($_name);
+        if (!empty($_access)) {
+            $_resources[] = $_name;
+            $_resources[] = $_name . '*';
+        }
+
+        foreach ($_result as $_name) {
+            $_name = TableResource::RESOURCE_NAME . '/' . $_name;
+            $_access = $this->getPermissions($_name);
+            if (!empty($_access)) {
+                $_resources[] = $_name;
+            }
+        }
+
+        return $_resources;
     }
-
-    /**
-     * @return ServiceResponseInterface
-     */
-//    protected function respond()
-//    {
-//        if ( Verbs::POST === $this->getRequestedAction() )
-//        {
-//            switch ( $this->resource )
-//            {
-//                case Table::RESOURCE_NAME:
-//                case Schema::RESOURCE_NAME:
-//                    if ( !( $this->response instanceof ServiceResponseInterface ) )
-//                    {
-//                        $this->response = ResponseFactory::create( $this->response, $this->outputFormat, ServiceResponseInterface::HTTP_CREATED );
-//                    }
-//                    break;
-//            }
-//        }
-//
-//        parent::respond();
-//    }
-
 }
