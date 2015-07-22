@@ -37,9 +37,9 @@ class AzureBlobConfig implements ServiceConfigHandlerInterface
     /**
      * {@inheritdoc}
      */
-    public static function validateConfig($config)
+    public static function validateConfig($config, $create=true)
     {
-        return true;
+        return (AzureConfig::validateConfig($config, $create) && FilePublicPath::validateConfig($config, $create));
     }
 
     /**
