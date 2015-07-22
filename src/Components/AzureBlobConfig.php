@@ -93,6 +93,30 @@ class AzureBlobConfig implements ServiceConfigHandlerInterface
     /**
      * {@inheritdoc}
      */
+    public static function getConfigSchema()
+    {
+        $azureConfig = new AzureConfig();
+        $pathConfig = new FilePublicPath();
+        $out = null;
+
+        $azureSchema = $azureConfig->getConfigSchema();
+        $pathSchema = $pathConfig->getConfigSchema();
+
+        static::updatePathSchema($pathSchema);
+
+        if (!empty($azureSchema)) {
+            $out = $azureSchema;
+        }
+        if (!empty($pathSchema)) {
+            $out = ($out) ? array_merge($out, $pathSchema) : $pathSchema;
+        }
+
+        return $out;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public static function removeConfig($id)
     {
         // deleting is not necessary here due to cascading on_delete relationship in database
