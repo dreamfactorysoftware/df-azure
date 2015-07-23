@@ -129,10 +129,10 @@ class AzureBlobFileSystem extends RemoteFileSystem
 
         /** @var \WindowsAzure\Blob\Models\Container[] $_items */
         $_items = $result->getContainers();
-        $result = array();
+        $result = [];
         foreach ($_items as $_item) {
             $_name = $_item->getName();
-            $out = array('name' => $_name, 'path' => $_name);
+            $out = ['name' => $_name, 'path' => $_name];
             if ($include_properties) {
                 $props = $_item->getProperties();
                 $out['last_modified'] = gmdate(static::TIMESTAMP_FORMAT, $props->getLastModified()->getTimestamp());
@@ -151,26 +151,24 @@ class AzureBlobFileSystem extends RemoteFileSystem
      * @param bool   $include_files
      * @param bool   $include_folders
      * @param bool   $full_tree
-     * @param bool   $include_properties
      *
      * @return array
      */
-    public function getContainer(
-        $container,
-        $include_files = true,
-        $include_folders = true,
-        $full_tree = false,
-        $include_properties = false
-    ){
+    public function getContainer($container, $include_files = true, $include_folders = true, $full_tree = false)
+    {
         $this->checkConnection();
 
-        $result = $this->getFolder($container, '', $include_files, $include_folders, $full_tree, false);
-        $result['name'] = $container;
-        if ($include_properties) {
-            /** @var \WindowsAzure\Blob\Models\GetContainerPropertiesResult $props */
-            $props = $this->_blobConn->getContainerProperties($container);
-            $result['last_modified'] = gmdate(static::TIMESTAMP_FORMAT, $props->getLastModified()->getTimestamp());
-        }
+        return $this->getFolder($container, '', $include_files, $include_folders, $full_tree);
+    }
+
+    public function getContainerProperties($container)
+    {
+        $this->checkConnection();
+
+        $result = ['name' => $container];
+        /** @var \WindowsAzure\Blob\Models\GetContainerPropertiesResult $props */
+        $props = $this->_blobConn->getContainerProperties($container);
+        $result['last_modified'] = gmdate(static::TIMESTAMP_FORMAT, $props->getLastModified()->getTimestamp());
 
         return $result;
     }
@@ -206,7 +204,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
      * @throws DfException
      * @return array
      */
-    public function createContainer($properties, $metadata = array())
+    public function createContainer($properties, $metadata = [])
     {
         $this->checkConnection();
 
@@ -220,7 +218,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
 
         $this->_blobConn->createContainer($_name, $options);
 
-        return array('name' => $_name, 'path' => $_name);
+        return ['name' => $_name, 'path' => $_name];
     }
 
     /**
@@ -232,7 +230,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
      * @throws NotFoundException
      * @return void
      */
-    public function updateContainerProperties($container, $properties = array())
+    public function updateContainerProperties($container, $properties = [])
     {
         $this->checkConnection();
 
@@ -338,7 +336,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
      *
      * @return void
      */
-    public function copyBlob($container, $name, $src_container, $src_name, $properties = array())
+    public function copyBlob($container, $name, $src_container, $src_name, $properties = [])
     {
         $this->checkConnection();
         $this->_blobConn->copyBlob($container, $this->fixBlobName($name), $src_container,
@@ -425,7 +423,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
         $results = $this->_blobConn->listBlobs($container, $options);
         $blobs = $results->getBlobs();
         $prefixes = $results->getBlobPrefixes();
-        $out = array();
+        $out = [];
 
         /** @var \WindowsAzure\Blob\Models\Blob $blob */
         foreach ($blobs as $blob) {
@@ -434,23 +432,23 @@ class AzureBlobFileSystem extends RemoteFileSystem
                 continue;
             }
             $props = $blob->getProperties();
-            $out[] = array(
+            $out[] = [
                 'name'             => $name,
                 'last_modified'    => gmdate(static::TIMESTAMP_FORMAT, $props->getLastModified()->getTimestamp()),
                 'content_length'   => $props->getContentLength(),
                 'content_type'     => $props->getContentType(),
                 'content_encoding' => $props->getContentEncoding(),
                 'content_language' => $props->getContentLanguage()
-            );
+            ];
         }
 
         foreach ($prefixes as $blob) {
-            $out[] = array(
+            $out[] = [
                 'name'           => $blob->getName(),
                 'content_type'   => null,
                 'content_length' => 0,
                 'last_modified'  => null
-            );
+            ];
         }
 
         return $out;
@@ -472,12 +470,12 @@ class AzureBlobFileSystem extends RemoteFileSystem
         /** @var GetBlobPropertiesResult $result */
         $result = $this->_blobConn->getBlobProperties($container, $name);
         $props = $result->getProperties();
-        $file = array(
+        $file = [
             'name'           => $name,
             'last_modified'  => gmdate(static::TIMESTAMP_FORMAT, $props->getLastModified()->getTimestamp()),
             'content_length' => $props->getContentLength(),
             'content_type'   => $props->getContentType()
-        );
+        ];
 
         return $file;
     }
@@ -490,7 +488,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
      * @throws \Exception
      * @return void
      */
-    public function streamBlob($container, $blobName, $params = array())
+    public function streamBlob($container, $blobName, $params = [])
     {
         try {
             $this->checkConnection();
