@@ -41,7 +41,7 @@ class Table extends BaseNoSqlDbService
     /**
      * @var string
      */
-    protected $_defaultPartitionKey = null;
+    protected $defaultPartitionKey = null;
 
     /**
      * @var array
@@ -102,8 +102,8 @@ class Table extends BaseNoSqlDbService
 
         try {
             $this->dbConn = ServicesBuilder::getInstance()->createTableService($dsn);
-        } catch (\Exception $_ex) {
-            throw new InternalServerErrorException("Windows Azure Table Service Exception:\n{$_ex->getMessage()}");
+        } catch (\Exception $ex) {
+            throw new InternalServerErrorException("Windows Azure Table Service Exception:\n{$ex->getMessage()}");
         }
     }
 
@@ -114,8 +114,8 @@ class Table extends BaseNoSqlDbService
     {
         try {
             $this->dbConn = null;
-        } catch (\Exception $_ex) {
-            error_log("Failed to disconnect from database.\n{$_ex->getMessage()}");
+        } catch (\Exception $ex) {
+            error_log("Failed to disconnect from database.\n{$ex->getMessage()}");
         }
     }
 
@@ -133,10 +133,10 @@ class Table extends BaseNoSqlDbService
 
     public function getTables()
     {
-        /** @var QueryTablesResult $_result */
-        $_result = $this->dbConn->queryTables();
+        /** @var QueryTablesResult $result */
+        $result = $this->dbConn->queryTables();
 
-        $out = $_result->getTables();
+        $out = $result->getTables();
 
         return $out;
     }
@@ -150,17 +150,17 @@ class Table extends BaseNoSqlDbService
      */
     public function correctTableName(&$name)
     {
-        static $_existing = null;
+        static $existing = null;
 
-        if (!$_existing) {
-            $_existing = $this->getTables();
+        if (!$existing) {
+            $existing = $this->getTables();
         }
 
         if (empty($name)) {
             throw new BadRequestException('Table name can not be empty.');
         }
 
-        if (false === array_search($name, $_existing)) {
+        if (false === array_search($name, $existing)) {
             throw new NotFoundException("Table '$name' not found.");
         }
 
@@ -174,7 +174,7 @@ class Table extends BaseNoSqlDbService
     {
         try {
             return parent::handleResource($resources);
-        } catch (NotFoundException $_ex) {
+        } catch (NotFoundException $ex) {
             // If version 1.x, the resource could be a table
 //            if ($this->request->getApiVersion())
 //            {
@@ -186,7 +186,7 @@ class Table extends BaseNoSqlDbService
 //                return $resource->handleRequest( $this->request, $newPath, $this->outputFormat );
 //            }
 
-            throw $_ex;
+            throw $ex;
         }
     }
 
@@ -195,41 +195,41 @@ class Table extends BaseNoSqlDbService
      */
     public function getAccessList()
     {
-        $_resources = [];
+        $resources = [];
 
 //        $refresh = $this->request->getParameterAsBool( 'refresh' );
 
-        $_name = Schema::RESOURCE_NAME . '/';
-        $_access = $this->getPermissions($_name);
-        if (!empty($_access)) {
-            $_resources[] = $_name;
-            $_resources[] = $_name . '*';
+        $name = Schema::RESOURCE_NAME . '/';
+        $access = $this->getPermissions($name);
+        if (!empty($access)) {
+            $resources[] = $name;
+            $resources[] = $name . '*';
         }
 
-        $_result = $this->getTables();
-        foreach ($_result as $_name) {
-            $_name = Schema::RESOURCE_NAME . '/' . $_name;
-            $_access = $this->getPermissions($_name);
-            if (!empty($_access)) {
-                $_resources[] = $_name;
+        $result = $this->getTables();
+        foreach ($result as $name) {
+            $name = Schema::RESOURCE_NAME . '/' . $name;
+            $access = $this->getPermissions($name);
+            if (!empty($access)) {
+                $resources[] = $name;
             }
         }
 
-        $_name = TableResource::RESOURCE_NAME . '/';
-        $_access = $this->getPermissions($_name);
-        if (!empty($_access)) {
-            $_resources[] = $_name;
-            $_resources[] = $_name . '*';
+        $name = TableResource::RESOURCE_NAME . '/';
+        $access = $this->getPermissions($name);
+        if (!empty($access)) {
+            $resources[] = $name;
+            $resources[] = $name . '*';
         }
 
-        foreach ($_result as $_name) {
-            $_name = TableResource::RESOURCE_NAME . '/' . $_name;
-            $_access = $this->getPermissions($_name);
-            if (!empty($_access)) {
-                $_resources[] = $_name;
+        foreach ($result as $name) {
+            $name = TableResource::RESOURCE_NAME . '/' . $name;
+            $access = $this->getPermissions($name);
+            if (!empty($access)) {
+                $resources[] = $name;
             }
         }
 
-        return $_resources;
+        return $resources;
     }
 }

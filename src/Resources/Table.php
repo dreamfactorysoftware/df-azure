@@ -55,7 +55,7 @@ class Table extends BaseDbTableResource
     /**
      * @var string
      */
-    protected $_defaultPartitionKey = null;
+    protected $defaultPartitionKey = null;
     /**
      * @var null | BatchOperations
      */
@@ -87,16 +87,16 @@ class Table extends BaseDbTableResource
         }
 //        $refresh = $this->request->queryBool('refresh');
 
-        $_names = $this->service->getTables();
+        $names = $this->service->getTables();
 
-        $_extras =
-            DbUtilities::getSchemaExtrasForTables($this->service->getServiceId(), $_names, false, 'table,label,plural');
+        $extras =
+            DbUtilities::getSchemaExtrasForTables($this->service->getServiceId(), $names, false, 'table,label,plural');
 
-        $_tables = [];
-        foreach ($_names as $name) {
+        $tables = [];
+        foreach ($names as $name) {
             $label = '';
             $plural = '';
-            foreach ($_extras as $each) {
+            foreach ($extras as $each) {
                 if (0 == strcasecmp($name, ArrayUtils::get($each, 'table', ''))) {
                     $label = ArrayUtils::get($each, 'label');
                     $plural = ArrayUtils::get($each, 'plural');
@@ -112,10 +112,10 @@ class Table extends BaseDbTableResource
                 $plural = Inflector::pluralize($label);
             }
 
-            $_tables[] = ['name' => $name, 'label' => $label, 'plural' => $plural];
+            $tables[] = ['name' => $name, 'label' => $label, 'plural' => $plural];
         }
 
-        return $_tables;
+        return $tables;
     }
 
     /**
@@ -125,23 +125,23 @@ class Table extends BaseDbTableResource
     {
         $record = DbUtilities::validateAsArray($record, null, false, 'There are no fields in the record.');
 
-        $_fields = ArrayUtils::get($extras, 'fields');
-        $_ssFilters = ArrayUtils::get($extras, 'ss_filters');
+        $fields = ArrayUtils::get($extras, 'fields');
+        $ssFilters = ArrayUtils::get($extras, 'ss_filters');
         try {
             // parse filter
-            $filter = static::buildCriteriaArray($filter, $params, $_ssFilters);
-            /** @var Entity[] $_entities */
-            $_entities = $this->queryEntities($table, $filter, $_fields, $extras);
-            foreach ($_entities as $_entity) {
-                $_entity = static::parseRecordToEntity($record, $_entity);
-                $this->service->getConnection()->updateEntity($table, $_entity);
+            $filter = static::buildCriteriaArray($filter, $params, $ssFilters);
+            /** @var Entity[] $entities */
+            $entities = $this->queryEntities($table, $filter, $fields, $extras);
+            foreach ($entities as $entity) {
+                $entity = static::parseRecordToEntity($record, $entity);
+                $this->service->getConnection()->updateEntity($table, $entity);
             }
 
-            $_out = static::parseEntitiesToRecords($_entities, $_fields);
+            $out = static::parseEntitiesToRecords($entities, $fields);
 
-            return $_out;
-        } catch (\Exception $_ex) {
-            throw new InternalServerErrorException("Failed to update records in '$table'.\n{$_ex->getMessage()}");
+            return $out;
+        } catch (\Exception $ex) {
+            throw new InternalServerErrorException("Failed to update records in '$table'.\n{$ex->getMessage()}");
         }
     }
 
@@ -152,23 +152,23 @@ class Table extends BaseDbTableResource
     {
         $record = DbUtilities::validateAsArray($record, null, false, 'There are no fields in the record.');
 
-        $_fields = ArrayUtils::get($extras, 'fields');
-        $_ssFilters = ArrayUtils::get($extras, 'ss_filters');
+        $fields = ArrayUtils::get($extras, 'fields');
+        $ssFilters = ArrayUtils::get($extras, 'ss_filters');
         try {
             // parse filter
-            $filter = static::buildCriteriaArray($filter, $params, $_ssFilters);
-            /** @var Entity[] $_entities */
-            $_entities = $this->queryEntities($table, $filter, $_fields, $extras);
-            foreach ($_entities as $_entity) {
-                $_entity = static::parseRecordToEntity($record, $_entity);
-                $this->service->getConnection()->mergeEntity($table, $_entity);
+            $filter = static::buildCriteriaArray($filter, $params, $ssFilters);
+            /** @var Entity[] $entities */
+            $entities = $this->queryEntities($table, $filter, $fields, $extras);
+            foreach ($entities as $entity) {
+                $entity = static::parseRecordToEntity($record, $entity);
+                $this->service->getConnection()->mergeEntity($table, $entity);
             }
 
-            $_out = static::parseEntitiesToRecords($_entities, $_fields);
+            $out = static::parseEntitiesToRecords($entities, $fields);
 
-            return $_out;
-        } catch (\Exception $_ex) {
-            throw new InternalServerErrorException("Failed to patch records in '$table'.\n{$_ex->getMessage()}");
+            return $out;
+        } catch (\Exception $ex) {
+            throw new InternalServerErrorException("Failed to patch records in '$table'.\n{$ex->getMessage()}");
         }
     }
 
@@ -190,23 +190,23 @@ class Table extends BaseDbTableResource
             throw new BadRequestException("Filter for delete request can not be empty.");
         }
 
-        $_fields = ArrayUtils::get($extras, 'fields');
-        $_ssFilters = ArrayUtils::get($extras, 'ss_filters');
+        $fields = ArrayUtils::get($extras, 'fields');
+        $ssFilters = ArrayUtils::get($extras, 'ss_filters');
         try {
-            $filter = static::buildCriteriaArray($filter, $params, $_ssFilters);
-            /** @var Entity[] $_entities */
-            $_entities = $this->queryEntities($table, $filter, $_fields, $extras);
-            foreach ($_entities as $_entity) {
-                $_partitionKey = $_entity->getPartitionKey();
-                $_rowKey = $_entity->getRowKey();
-                $this->service->getConnection()->deleteEntity($table, $_partitionKey, $_rowKey);
+            $filter = static::buildCriteriaArray($filter, $params, $ssFilters);
+            /** @var Entity[] $entities */
+            $entities = $this->queryEntities($table, $filter, $fields, $extras);
+            foreach ($entities as $entity) {
+                $partitionKey = $entity->getPartitionKey();
+                $rowKey = $entity->getRowKey();
+                $this->service->getConnection()->deleteEntity($table, $partitionKey, $rowKey);
             }
 
-            $_out = static::parseEntitiesToRecords($_entities, $_fields);
+            $out = static::parseEntitiesToRecords($entities, $fields);
 
-            return $_out;
-        } catch (\Exception $_ex) {
-            throw new InternalServerErrorException("Failed to delete records from '$table'.\n{$_ex->getMessage()}");
+            return $out;
+        } catch (\Exception $ex) {
+            throw new InternalServerErrorException("Failed to delete records from '$table'.\n{$ex->getMessage()}");
         }
     }
 
@@ -215,25 +215,25 @@ class Table extends BaseDbTableResource
      */
     public function retrieveRecordsByFilter($table, $filter = null, $params = array(), $extras = array())
     {
-        $_fields = ArrayUtils::get($extras, 'fields');
-        $_ssFilters = ArrayUtils::get($extras, 'ss_filters');
+        $fields = ArrayUtils::get($extras, 'fields');
+        $ssFilters = ArrayUtils::get($extras, 'ss_filters');
 
-        $_options = new QueryEntitiesOptions();
-        $_options->setSelectFields(array());
-        if (!empty($_fields) && ('*' != $_fields)) {
-            $_fields = array_map('trim', explode(',', trim($_fields, ',')));
-            $_options->setSelectFields($_fields);
+        $options = new QueryEntitiesOptions();
+        $options->setSelectFields(array());
+        if (!empty($fields) && ('*' != $fields)) {
+            $fields = array_map('trim', explode(',', trim($fields, ',')));
+            $options->setSelectFields($fields);
         }
 
         $limit = intval(ArrayUtils::get($extras, 'limit', 0));
         if ($limit > 0) {
-            $_options->setTop($limit);
+            $options->setTop($limit);
         }
 
-        $filter = static::buildCriteriaArray($filter, $params, $_ssFilters);
-        $_out = $this->queryEntities($table, $filter, $_fields, $extras, true);
+        $filter = static::buildCriteriaArray($filter, $params, $ssFilters);
+        $out = $this->queryEntities($table, $filter, $fields, $extras, true);
 
-        return $_out;
+        return $out;
     }
 
     /**
@@ -247,12 +247,12 @@ class Table extends BaseDbTableResource
     protected function getIdsInfo($table, $fields_info = null, &$requested_fields = null, $requested_types = null)
     {
         $requested_fields = array(static::PARTITION_KEY, static::ROW_KEY); // can only be this
-        $_ids = array(
+        $ids = array(
             array('name' => static::PARTITION_KEY, 'type' => 'string', 'required' => true),
             array('name' => static::ROW_KEY, 'type' => 'string', 'required' => true)
         );
 
-        return $_ids;
+        return $ids;
     }
 
     /**
@@ -272,41 +272,41 @@ class Table extends BaseDbTableResource
         $extras = array(),
         $parse_results = false
     ){
-        $_options = new QueryEntitiesOptions();
-        $_options->setSelectFields(array());
+        $options = new QueryEntitiesOptions();
+        $options->setSelectFields(array());
 
         if (!empty($fields) && ('*' != $fields)) {
             if (!is_array($fields)) {
                 $fields = array_map('trim', explode(',', trim($fields, ',')));
             }
-            $_options->setSelectFields($fields);
+            $options->setSelectFields($fields);
         }
 
         $limit = intval(ArrayUtils::get($extras, 'limit', 0));
         if ($limit > 0) {
-            $_options->setTop($limit);
+            $options->setTop($limit);
         }
 
         if (!empty($parsed_filter)) {
-            $_query = new QueryStringFilter($parsed_filter);
-            $_options->setFilter($_query);
+            $query = new QueryStringFilter($parsed_filter);
+            $options->setFilter($query);
         }
 
         try {
-            /** @var QueryEntitiesResult $_result */
-            $_result = $this->service->getConnection()->queryEntities($table, $_options);
+            /** @var QueryEntitiesResult $result */
+            $result = $this->service->getConnection()->queryEntities($table, $options);
 
             /** @var Entity[] $entities */
-            $_entities = $_result->getEntities();
+            $entities = $result->getEntities();
 
             if ($parse_results) {
-                return static::parseEntitiesToRecords($_entities);
+                return static::parseEntitiesToRecords($entities);
             }
 
-            return $_entities;
-        } catch (ServiceException $_ex) {
+            return $entities;
+        } catch (ServiceException $ex) {
             throw new InternalServerErrorException("Failed to filter items from '$table' on Windows Azure Tables service.\n" .
-                $_ex->getMessage());
+                $ex->getMessage());
         }
     }
 
@@ -322,61 +322,61 @@ class Table extends BaseDbTableResource
      */
     protected function parseRecord($record, $fields_info, $filter_info = null, $for_update = false, $old_record = null)
     {
-        $_parsed = (empty($fields_info)) ? $record : array();
+        $parsed = (empty($fields_info)) ? $record : array();
 
-        unset($_parsed['Timestamp']); // not set-able
+        unset($parsed['Timestamp']); // not set-able
 
         if (!empty($fields_info)) {
-            $_keys = array_keys($record);
-            $_values = array_values($record);
-            foreach ($fields_info as $_fieldInfo) {
-                $_name = ArrayUtils::get($_fieldInfo, 'name', '');
-                $_type = ArrayUtils::get($_fieldInfo, 'type');
-                $_pos = array_search($_name, $_keys);
-                if (false !== $_pos) {
-                    $_fieldVal = ArrayUtils::get($_values, $_pos);
+            $keys = array_keys($record);
+            $values = array_values($record);
+            foreach ($fields_info as $fieldInfo) {
+                $name = ArrayUtils::get($fieldInfo, 'name', '');
+                $type = ArrayUtils::get($fieldInfo, 'type');
+                $pos = array_search($name, $keys);
+                if (false !== $pos) {
+                    $fieldVal = ArrayUtils::get($values, $pos);
                     // due to conversion from XML to array, null or empty xml elements have the array value of an empty array
-                    if (is_array($_fieldVal) && empty($_fieldVal)) {
-                        $_fieldVal = null;
+                    if (is_array($fieldVal) && empty($fieldVal)) {
+                        $fieldVal = null;
                     }
 
                     /** validations **/
 
-                    $_validations = ArrayUtils::get($_fieldInfo, 'validation');
+                    $validations = ArrayUtils::get($fieldInfo, 'validation');
 
-                    if (!static::validateFieldValue($_name, $_fieldVal, $_validations, $for_update, $_fieldInfo)) {
-                        unset($_keys[$_pos]);
-                        unset($_values[$_pos]);
+                    if (!static::validateFieldValue($name, $fieldVal, $validations, $for_update, $fieldInfo)) {
+                        unset($keys[$pos]);
+                        unset($values[$pos]);
                         continue;
                     }
 
-                    $_parsed[$_name] = $_fieldVal;
-                    unset($_keys[$_pos]);
-                    unset($_values[$_pos]);
+                    $parsed[$name] = $fieldVal;
+                    unset($keys[$pos]);
+                    unset($values[$pos]);
                 }
 
                 // add or override for specific fields
-                switch ($_type) {
+                switch ($type) {
                     case 'timestamp_on_create':
                         if (!$for_update) {
-                            $_parsed[$_name] = new \MongoDate();
+                            $parsed[$name] = new \MongoDate();
                         }
                         break;
                     case 'timestamp_on_update':
-                        $_parsed[$_name] = new \MongoDate();
+                        $parsed[$name] = new \MongoDate();
                         break;
                     case 'user_id_on_create':
                         if (!$for_update) {
                             $userId = 1;//Session::getCurrentUserId();
                             if (isset($userId)) {
-                                $_parsed[$_name] = $userId;
+                                $parsed[$name] = $userId;
                             }
                         }
                         break;
                     case 'user_id_on_update':
                         $userId = 1;//Session::getCurrentUserId();
                         if (isset($userId)) {
-                            $_parsed[$_name] = $userId;
+                            $parsed[$name] = $userId;
                         }
                         break;
                 }
@@ -384,10 +384,10 @@ class Table extends BaseDbTableResource
         }
 
         if (!empty($filter_info)) {
-            $this->validateRecord($_parsed, $filter_info, $for_update, $old_record);
+            $this->validateRecord($parsed, $filter_info, $for_update, $old_record);
         }
 
-        return $_parsed;
+        return $parsed;
     }
 
     /**
@@ -402,32 +402,32 @@ class Table extends BaseDbTableResource
         if (empty($entity)) {
             $entity = new Entity();
         }
-        foreach ($record as $_key => $_value) {
-            if (false === array_search($_key, $exclude)) {
+        foreach ($record as $key => $value) {
+            if (false === array_search($key, $exclude)) {
                 // valid types
 //				const DATETIME = 'Edm.DateTime';
 //				const BINARY   = 'Edm.Binary';
 //				const GUID     = 'Edm.Guid';
-                $_edmType = EdmType::STRING;
-                switch (gettype($_value)) {
+                $edmType = EdmType::STRING;
+                switch (gettype($value)) {
                     case 'boolean':
-                        $_edmType = EdmType::BOOLEAN;
+                        $edmType = EdmType::BOOLEAN;
                         break;
                     case 'double':
                     case 'float':
-                        $_edmType = EdmType::DOUBLE;
+                        $edmType = EdmType::DOUBLE;
                         break;
                     case 'integer':
-                        $_edmType = ($_value > 2147483647) ? EdmType::INT64 : EdmType::INT32;
+                        $edmType = ($value > 2147483647) ? EdmType::INT64 : EdmType::INT32;
                         break;
                 }
-                if ($entity->getProperty($_key)) {
-                    $_prop = new Property();
-                    $_prop->setEdmType($_edmType);
-                    $_prop->setValue($_value);
-                    $entity->setProperty($_key, $_prop);
+                if ($entity->getProperty($key)) {
+                    $prop = new Property();
+                    $prop->setEdmType($edmType);
+                    $prop->setValue($value);
+                    $entity->setProperty($key, $prop);
                 } else {
-                    $entity->addProperty($_key, $_edmType, $_value);
+                    $entity->addProperty($key, $edmType, $value);
                 }
             }
         }
@@ -473,18 +473,18 @@ class Table extends BaseDbTableResource
         if (!is_array($records)) {
             $records = array();
         }
-        foreach ($entities as $_entity) {
-            if ($_entity instanceof BatchError) {
-                /** @var ServiceException $_error */
-                $_error = $_entity->getError();
-                throw $_error;
+        foreach ($entities as $entity) {
+            if ($entity instanceof BatchError) {
+                /** @var ServiceException $error */
+                $error = $entity->getError();
+                throw $error;
             }
-            if ($_entity instanceof InsertEntityResult) {
-                /** @var InsertEntityResult $_entity */
-                $_entity = $_entity->getEntity();
-                $records[] = static::parseEntityToRecord($_entity, $include);
+            if ($entity instanceof InsertEntityResult) {
+                /** @var InsertEntityResult $entity */
+                $entity = $entity->getEntity();
+                $records[] = static::parseEntityToRecord($entity, $include);
             } else {
-                $records[] = static::parseEntityToRecord($_entity, $include);
+                $records[] = static::parseEntityToRecord($entity, $include);
             }
         }
 
@@ -499,16 +499,16 @@ class Table extends BaseDbTableResource
         // build filter array if necessary, add server-side filters if necessary
         if (!is_array($filter)) {
 //            Session::replaceLookups( $filter );
-            $_criteria = static::parseFilter($filter, $params);
+            $criteria = static::parseFilter($filter, $params);
         } else {
-            $_criteria = $filter;
+            $criteria = $filter;
         }
-        $_serverCriteria = static::buildSSFilterArray($ss_filters);
-        if (!empty($_serverCriteria)) {
-            $_criteria = (empty($_criteria)) ? $_serverCriteria : "( $_serverCriteria ) and ( $_criteria )";
+        $serverCriteria = static::buildSSFilterArray($ss_filters);
+        if (!empty($serverCriteria)) {
+            $criteria = (empty($criteria)) ? $serverCriteria : "( $serverCriteria ) and ( $criteria )";
         }
 
-        return $_criteria;
+        return $criteria;
     }
 
     protected static function buildSSFilterArray($ss_filters)
@@ -518,13 +518,13 @@ class Table extends BaseDbTableResource
         }
 
         // build the server side criteria
-        $_filters = ArrayUtils::get($ss_filters, 'filters');
-        if (empty($_filters)) {
+        $filters = ArrayUtils::get($ss_filters, 'filters');
+        if (empty($filters)) {
             return '';
         }
 
-        $_combiner = ArrayUtils::get($ss_filters, 'filter_op', 'and');
-        switch (strtoupper($_combiner)) {
+        $combiner = ArrayUtils::get($ss_filters, 'filter_op', 'and');
+        switch (strtoupper($combiner)) {
             case 'AND':
             case 'OR':
                 break;
@@ -533,26 +533,26 @@ class Table extends BaseDbTableResource
                 throw new InternalServerErrorException('Invalid server-side filter configuration detected.');
         }
 
-        $_criteria = '';
-        foreach ($_filters as $_filter) {
-            $_name = ArrayUtils::get($_filter, 'name');
-            $_op = ArrayUtils::get($_filter, 'operator');
-            if (empty($_name) || empty($_op)) {
+        $criteria = '';
+        foreach ($filters as $filter) {
+            $name = ArrayUtils::get($filter, 'name');
+            $op = ArrayUtils::get($filter, 'operator');
+            if (empty($name) || empty($op)) {
                 // log and bail
                 throw new InternalServerErrorException('Invalid server-side filter configuration detected.');
             }
 
-            $_value = ArrayUtils::get($_filter, 'value');
-            $_value = static::interpretFilterValue($_value);
+            $value = ArrayUtils::get($filter, 'value');
+            $value = static::interpretFilterValue($value);
 
-            $_temp = static::parseFilter("$_name $_op $_value");
-            if (!empty($_criteria)) {
-                $_criteria .= " $_combiner ";
+            $temp = static::parseFilter("$name $op $value");
+            if (!empty($criteria)) {
+                $criteria .= " $combiner ";
             }
-            $_criteria .= $_temp;
+            $criteria .= $temp;
         }
 
-        return $_criteria;
+        return $criteria;
     }
 
     /**
@@ -573,15 +573,15 @@ class Table extends BaseDbTableResource
 
         // handle logical operators first
         // supported logical operators are or, and, not
-        $_search = array(' || ', ' && ', ' OR ', ' AND ', ' NOR ', ' NOT ');
-        $_replace = array(' or ', ' and ', ' or ', ' and ', ' nor ', ' not ');
-        $filter = trim(str_ireplace($_search, $_replace, ' ' . $filter)); // space added for 'not' case
+        $search = array(' || ', ' && ', ' OR ', ' AND ', ' NOR ', ' NOT ');
+        $replace = array(' or ', ' and ', ' or ', ' and ', ' nor ', ' not ');
+        $filter = trim(str_ireplace($search, $replace, ' ' . $filter)); // space added for 'not' case
 
         // the rest should be comparison operators
         // supported comparison operators are eq, ne, gt, ge, lt, le
-        $_search =
+        $search =
             array('!=', '>=', '<=', '>', '<', '=', ' EQ ', ' NE ', ' LT ', ' LTE ', ' LE ', ' GT ', ' GTE', ' GE ');
-        $_replace = array(
+        $replace = array(
             ' ne ',
             ' ge ',
             ' le ',
@@ -597,19 +597,19 @@ class Table extends BaseDbTableResource
             ' ge ',
             ' ge '
         );
-        $filter = trim(str_ireplace($_search, $_replace, $filter));
+        $filter = trim(str_ireplace($search, $replace, $filter));
 
 //			WHERE name LIKE "%Joe%"	not supported
 //			WHERE name LIKE "%Joe"	not supported
 //			WHERE name LIKE "Joe%"	name ge 'Joe' and name lt 'Jof';
-//			if ( ( '%' == $_val[ strlen( $_val ) - 1 ] ) &&
-//				 ( '%' != $_val[0] ) )
+//			if ( ( '%' == $val[ strlen( $val ) - 1 ] ) &&
+//				 ( '%' != $val[0] ) )
 //			{
 //			}
 
         if (!empty($params)) {
-            foreach ($params as $_name => $_value) {
-                $filter = str_replace($_name, $_value, $filter);
+            foreach ($params as $name => $value) {
+                $filter = str_replace($name, $value, $filter);
             }
         }
 
@@ -626,85 +626,85 @@ class Table extends BaseDbTableResource
             $ids = array_map('trim', explode(',', trim($ids, ',')));
         }
 
-        $_filters = array();
-        $_filter = '';
-        $_count = 0;
-        foreach ($ids as $_id) {
-            if (!empty($_filter)) {
-                $_filter .= ' or ';
+        $filters = array();
+        $filter = '';
+        $count = 0;
+        foreach ($ids as $id) {
+            if (!empty($filter)) {
+                $filter .= ' or ';
             }
-            $_filter .= static::ROW_KEY . " eq '$_id'";
-            $_count++;
-            if ($_count >= 14) // max comparisons is 15, leave one for partition key
+            $filter .= static::ROW_KEY . " eq '$id'";
+            $count++;
+            if ($count >= 14) // max comparisons is 15, leave one for partition key
             {
                 if (!empty($partition_key)) {
-                    $_filter = static::PARTITION_KEY . " eq '$partition_key' and ( $_filter )";
+                    $filter = static::PARTITION_KEY . " eq '$partition_key' and ( $filter )";
                 }
-                $_filters[] = $_filter;
-                $_count = 0;
+                $filters[] = $filter;
+                $count = 0;
             }
         }
 
-        if (!empty($_filter)) {
+        if (!empty($filter)) {
             if (!empty($partition_key)) {
-                $_filter = static::PARTITION_KEY . " eq '$partition_key' and ( $_filter )";
+                $filter = static::PARTITION_KEY . " eq '$partition_key' and ( $filter )";
             }
-            $_filters[] = $_filter;
+            $filters[] = $filter;
         }
 
-        return $_filters;
+        return $filters;
     }
 
     protected function checkForIds(&$record, $ids_info, $extras = null, $on_create = false, $remove = false)
     {
-        $_id = null;
+        $id = null;
         if (!empty($ids_info)) {
             if (1 == count($ids_info)) {
-                $_info = $ids_info[0];
-                $_name = ArrayUtils::get($_info, 'name');
-                $_value = (is_array($record)) ? ArrayUtils::get($record, $_name, null, $remove) : $record;
-                if (!empty($_value)) {
-                    $_type = ArrayUtils::get($_info, 'type');
-                    switch ($_type) {
+                $info = $ids_info[0];
+                $name = ArrayUtils::get($info, 'name');
+                $value = (is_array($record)) ? ArrayUtils::get($record, $name, null, $remove) : $record;
+                if (!empty($value)) {
+                    $type = ArrayUtils::get($info, 'type');
+                    switch ($type) {
                         case 'int':
-                            $_value = intval($_value);
+                            $value = intval($value);
                             break;
                         case 'string':
-                            $_value = strval($_value);
+                            $value = strval($value);
                             break;
                     }
-                    $_id = $_value;
+                    $id = $value;
                 } else {
-                    $_required = ArrayUtils::getBool($_info, 'required');
+                    $required = ArrayUtils::getBool($info, 'required');
                     // could be passed in as a parameter affecting all records
-                    $_param = ArrayUtils::get($extras, $_name);
-                    if ($on_create && $_required && empty($_param)) {
+                    $param = ArrayUtils::get($extras, $name);
+                    if ($on_create && $required && empty($param)) {
                         return false;
                     }
                 }
             } else {
-                $_id = array();
-                foreach ($ids_info as $_info) {
-                    $_name = ArrayUtils::get($_info, 'name');
-                    $_value = ArrayUtils::get($record, $_name, null, $remove);
-                    if (!empty($_value)) {
-                        $_type = ArrayUtils::get($_info, 'type');
-                        switch ($_type) {
+                $id = array();
+                foreach ($ids_info as $info) {
+                    $name = ArrayUtils::get($info, 'name');
+                    $value = ArrayUtils::get($record, $name, null, $remove);
+                    if (!empty($value)) {
+                        $type = ArrayUtils::get($info, 'type');
+                        switch ($type) {
                             case 'int':
-                                $_value = intval($_value);
+                                $value = intval($value);
                                 break;
                             case 'string':
-                                $_value = strval($_value);
+                                $value = strval($value);
                                 break;
                         }
-                        $_id[$_name] = $_value;
+                        $id[$name] = $value;
                     } else {
-                        $_required = ArrayUtils::getBool($_info, 'required');
+                        $required = ArrayUtils::getBool($info, 'required');
                         // could be passed in as a parameter affecting all records
-                        $_param = ArrayUtils::get($extras, $_name);
-                        if ($on_create && $_required && empty($_param)) {
-                            if (!is_array($record) && (static::ROW_KEY == $_name)) {
-                                $_id[$_name] = $record;
+                        $param = ArrayUtils::get($extras, $name);
+                        if ($on_create && $required && empty($param)) {
+                            if (!is_array($record) && (static::ROW_KEY == $name)) {
+                                $id[$name] = $record;
                             } else {
                                 return false;
                             }
@@ -714,8 +714,8 @@ class Table extends BaseDbTableResource
             }
         }
 
-        if (!empty($_id)) {
-            return $_id;
+        if (!empty($id)) {
+            return $id;
         } elseif ($on_create) {
             return array();
         }
@@ -745,181 +745,181 @@ class Table extends BaseDbTableResource
         $continue = false,
         $single = false
     ){
-        $_ssFilters = ArrayUtils::get($extras, 'ss_filters');
-        $_fields = ArrayUtils::get($extras, 'fields');
-        $_fieldsInfo = ArrayUtils::get($extras, 'fields_info');
-        $_requireMore = ArrayUtils::get($extras, 'require_more');
-        $_updates = ArrayUtils::get($extras, 'updates');
-        $_partitionKey = ArrayUtils::get($extras, static::PARTITION_KEY);
+        $ssFilters = ArrayUtils::get($extras, 'ss_filters');
+        $fields = ArrayUtils::get($extras, 'fields');
+        $fieldsInfo = ArrayUtils::get($extras, 'fields_info');
+        $requireMore = ArrayUtils::get($extras, 'require_more');
+        $updates = ArrayUtils::get($extras, 'updates');
+        $partitionKey = ArrayUtils::get($extras, static::PARTITION_KEY);
 
         if (!is_array($id)) {
-            $id = array(static::ROW_KEY => $id, static::PARTITION_KEY => $_partitionKey);
+            $id = array(static::ROW_KEY => $id, static::PARTITION_KEY => $partitionKey);
         }
-        if (!empty($_partitionKey)) {
-            $id[static::PARTITION_KEY] = $_partitionKey;
+        if (!empty($partitionKey)) {
+            $id[static::PARTITION_KEY] = $partitionKey;
         }
 
-        if (!empty($_updates)) {
-            foreach ($id as $_field => $_value) {
-                if (!isset($_updates[$_field])) {
-                    $_updates[$_field] = $_value;
+        if (!empty($updates)) {
+            foreach ($id as $field => $value) {
+                if (!isset($updates[$field])) {
+                    $updates[$field] = $value;
                 }
             }
-            $record = $_updates;
+            $record = $updates;
         } elseif (!empty($record)) {
-            if (!empty($_partitionKey)) {
-                $record[static::PARTITION_KEY] = $_partitionKey;
+            if (!empty($partitionKey)) {
+                $record[static::PARTITION_KEY] = $partitionKey;
             }
         }
 
         if (!empty($record)) {
-            $_forUpdate = false;
+            $forUpdate = false;
             switch ($this->getAction()) {
                 case Verbs::PUT:
                 case Verbs::MERGE:
                 case Verbs::PATCH:
-                    $_forUpdate = true;
+                    $forUpdate = true;
                     break;
             }
 
-            $record = $this->parseRecord($record, $_fieldsInfo, $_ssFilters, $_forUpdate);
+            $record = $this->parseRecord($record, $fieldsInfo, $ssFilters, $forUpdate);
             if (empty($record)) {
                 throw new BadRequestException('No valid fields were found in record.');
             }
 
-            $_entity = static::parseRecordToEntity($record);
+            $entity = static::parseRecordToEntity($record);
         } else {
-            $_entity = static::parseRecordToEntity($id);
+            $entity = static::parseRecordToEntity($id);
         }
 
-        $_partKey = $_entity->getPartitionKey();
-        if (empty($_partKey)) {
+        $partKey = $entity->getPartitionKey();
+        if (empty($partKey)) {
             throw new BadRequestException('No valid partition key found in request.');
         }
 
-        $_rowKey = $_entity->getRowKey();
-        if (empty($_rowKey)) {
+        $rowKey = $entity->getRowKey();
+        if (empty($rowKey)) {
             throw new BadRequestException('No valid row key found in request.');
         }
 
         // only allow batch if rollback and same partition
-        $_batch = ($rollback && !empty($_partitionKey));
-        $_out = array();
+        $batch = ($rollback && !empty($partitionKey));
+        $out = array();
         switch ($this->getAction()) {
             case Verbs::POST:
-                if ($_batch) {
+                if ($batch) {
                     if (!isset($this->batchOps)) {
                         $this->batchOps = new BatchOperations();
                     }
-                    $this->batchOps->addInsertEntity($this->_transactionTable, $_entity);
+                    $this->batchOps->addInsertEntity($this->transactionTable, $entity);
 
                     // track record for output
                     return parent::addToTransaction($record);
                 }
 
-                /** @var InsertEntityResult $_result */
-                $_result = $this->service->getConnection()->insertEntity($this->_transactionTable, $_entity);
+                /** @var InsertEntityResult $result */
+                $result = $this->service->getConnection()->insertEntity($this->transactionTable, $entity);
 
                 if ($rollback) {
-                    $this->addToRollback($_entity);
+                    $this->addToRollback($entity);
                 }
 
-                $_out = static::parseEntityToRecord($_result->getEntity(), $_fields);
+                $out = static::parseEntityToRecord($result->getEntity(), $fields);
                 break;
             case Verbs::PUT:
-                if ($_batch) {
+                if ($batch) {
                     if (!isset($this->batchOps)) {
                         $this->batchOps = new BatchOperations();
                     }
-                    $this->batchOps->addUpdateEntity($this->_transactionTable, $_entity);
+                    $this->batchOps->addUpdateEntity($this->transactionTable, $entity);
 
                     // track record for output
                     return parent::addToTransaction($record);
                 }
 
                 if ($rollback) {
-                    $_old = $this->service->getConnection()->getEntity(
-                        $this->_transactionTable,
-                        $_entity->getRowKey(),
-                        $_entity->getPartitionKey()
+                    $old = $this->service->getConnection()->getEntity(
+                        $this->transactionTable,
+                        $entity->getRowKey(),
+                        $entity->getPartitionKey()
                     );
-                    $this->addToRollback($_old);
+                    $this->addToRollback($old);
                 }
 
-                /** @var UpdateEntityResult $_result */
-                $this->service->getConnection()->updateEntity($this->_transactionTable, $_entity);
+                /** @var UpdateEntityResult $result */
+                $this->service->getConnection()->updateEntity($this->transactionTable, $entity);
 
-                $_out = static::parseEntityToRecord($_entity, $_fields);
+                $out = static::parseEntityToRecord($entity, $fields);
                 break;
             case Verbs::MERGE:
             case Verbs::PATCH:
-                if ($_batch) {
+                if ($batch) {
                     if (!isset($this->batchOps)) {
                         $this->batchOps = new BatchOperations();
                     }
-                    $this->batchOps->addMergeEntity($this->_transactionTable, $_entity);
+                    $this->batchOps->addMergeEntity($this->transactionTable, $entity);
 
                     // track id for output
-                    return parent::addToTransaction(null, $_rowKey);
+                    return parent::addToTransaction(null, $rowKey);
                 }
 
-                if ($rollback || $_requireMore) {
-                    $_old = $this->service->getConnection()->getEntity($this->_transactionTable, $_rowKey, $_partKey);
+                if ($rollback || $requireMore) {
+                    $old = $this->service->getConnection()->getEntity($this->transactionTable, $rowKey, $partKey);
                     if ($rollback) {
-                        $this->addToRollback($_old);
+                        $this->addToRollback($old);
                     }
-                    if ($_requireMore) {
-                        $_out = array_merge(
-                            static::parseEntityToRecord($_old, $_fields),
-                            static::parseEntityToRecord($_entity, $_fields)
+                    if ($requireMore) {
+                        $out = array_merge(
+                            static::parseEntityToRecord($old, $fields),
+                            static::parseEntityToRecord($entity, $fields)
                         );
                     }
                 }
 
-                $_out = (empty($_out)) ? static::parseEntityToRecord($_entity, $_fields) : $_out;
+                $out = (empty($out)) ? static::parseEntityToRecord($entity, $fields) : $out;
 
-                /** @var UpdateEntityResult $_result */
-                $this->service->getConnection()->mergeEntity($this->_transactionTable, $_entity);
+                /** @var UpdateEntityResult $result */
+                $this->service->getConnection()->mergeEntity($this->transactionTable, $entity);
                 break;
             case Verbs::DELETE:
-                if ($_batch) {
+                if ($batch) {
                     if (!isset($this->batchOps)) {
                         $this->batchOps = new BatchOperations();
                     }
-                    $this->batchOps->addDeleteEntity($this->_transactionTable, $_partKey, $_rowKey);
+                    $this->batchOps->addDeleteEntity($this->transactionTable, $partKey, $rowKey);
 
                     // track id for output
-                    return parent::addToTransaction(null, $_rowKey);
+                    return parent::addToTransaction(null, $rowKey);
                 }
 
-                if ($rollback || $_requireMore) {
-                    $_old = $this->service->getConnection()->getEntity($this->_transactionTable, $_partKey, $_rowKey);
+                if ($rollback || $requireMore) {
+                    $old = $this->service->getConnection()->getEntity($this->transactionTable, $partKey, $rowKey);
                     if ($rollback) {
-                        $this->addToRollback($_old);
+                        $this->addToRollback($old);
                     }
-                    if ($_requireMore) {
-                        $_out = static::parseEntityToRecord($_old, $_fields);
+                    if ($requireMore) {
+                        $out = static::parseEntityToRecord($old, $fields);
                     }
                 }
 
-                $this->service->getConnection()->deleteEntity($this->_transactionTable, $_partKey, $_rowKey);
+                $this->service->getConnection()->deleteEntity($this->transactionTable, $partKey, $rowKey);
 
-                $_out = (empty($_out)) ? static::parseEntityToRecord($_entity, $_fields) : $_out;
+                $out = (empty($out)) ? static::parseEntityToRecord($entity, $fields) : $out;
                 break;
             case Verbs::GET:
-                if (!empty($_partitionKey)) {
+                if (!empty($partitionKey)) {
                     // track id for output
-                    return parent::addToTransaction(null, $_rowKey);
+                    return parent::addToTransaction(null, $rowKey);
                 }
 
-                /** @var GetEntityResult $_result */
-                $_result = $this->service->getConnection()->getEntity($this->_transactionTable, $_partKey, $_rowKey);
+                /** @var GetEntityResult $result */
+                $result = $this->service->getConnection()->getEntity($this->transactionTable, $partKey, $rowKey);
 
-                $_out = static::parseEntityToRecord($_result->getEntity(), $_fields);
+                $out = static::parseEntityToRecord($result->getEntity(), $fields);
                 break;
         }
 
-        return $_out;
+        return $out;
     }
 
     /**
@@ -927,61 +927,61 @@ class Table extends BaseDbTableResource
      */
     protected function commitTransaction($extras = null)
     {
-        if (!isset($this->batchOps) && empty($this->_batchIds) && empty($this->_batchRecords)) {
+        if (!isset($this->batchOps) && empty($this->batchIds) && empty($this->batchRecords)) {
             return null;
         }
 
-        $_fields = ArrayUtils::get($extras, 'fields');
-        $_partitionKey = ArrayUtils::get($extras, static::PARTITION_KEY);
+        $fields = ArrayUtils::get($extras, 'fields');
+        $partitionKey = ArrayUtils::get($extras, static::PARTITION_KEY);
 
-        $_out = array();
+        $out = array();
         switch ($this->getAction()) {
             case Verbs::POST:
             case Verbs::PUT:
                 if (isset($this->batchOps)) {
-                    /** @var BatchResult $_result */
+                    /** @var BatchResult $result */
                     $this->service->getConnection()->batch($this->batchOps);
                 }
-                if (!empty($this->_batchRecords)) {
-                    $_out = static::parseEntitiesToRecords($this->_batchRecords, $_fields);
+                if (!empty($this->batchRecords)) {
+                    $out = static::parseEntitiesToRecords($this->batchRecords, $fields);
                 }
                 break;
 
             case Verbs::MERGE:
             case Verbs::PATCH:
                 if (isset($this->batchOps)) {
-                    /** @var BatchResult $_result */
+                    /** @var BatchResult $result */
                     $this->service->getConnection()->batch($this->batchOps);
                 }
-                if (!empty($this->_batchIds)) {
-                    $_filters = static::buildIdsFilter($this->_batchIds, $_partitionKey);
-                    foreach ($_filters as $_filter) {
-                        $_temp = $this->queryEntities($this->_transactionTable, $_filter, $_fields, $extras, true);
-                        $_out = array_merge($_out, $_temp);
+                if (!empty($this->batchIds)) {
+                    $filters = static::buildIdsFilter($this->batchIds, $partitionKey);
+                    foreach ($filters as $filter) {
+                        $temp = $this->queryEntities($this->transactionTable, $filter, $fields, $extras, true);
+                        $out = array_merge($out, $temp);
                     }
                 }
                 break;
 
             case Verbs::DELETE:
-                if (!empty($this->_batchIds)) {
-                    $_filters = static::buildIdsFilter($this->_batchIds, $_partitionKey);
-                    foreach ($_filters as $_filter) {
-                        $_temp = $this->queryEntities($this->_transactionTable, $_filter, $_fields, $extras, true);
-                        $_out = array_merge($_out, $_temp);
+                if (!empty($this->batchIds)) {
+                    $filters = static::buildIdsFilter($this->batchIds, $partitionKey);
+                    foreach ($filters as $filter) {
+                        $temp = $this->queryEntities($this->transactionTable, $filter, $fields, $extras, true);
+                        $out = array_merge($out, $temp);
                     }
                 }
                 if (isset($this->batchOps)) {
-                    /** @var BatchResult $_result */
+                    /** @var BatchResult $result */
                     $this->service->getConnection()->batch($this->batchOps);
                 }
                 break;
 
             case Verbs::GET:
-                if (!empty($this->_batchIds)) {
-                    $_filters = static::buildIdsFilter($this->_batchIds, $_partitionKey);
-                    foreach ($_filters as $_filter) {
-                        $_temp = $this->queryEntities($this->_transactionTable, $_filter, $_fields, $extras, true);
-                        $_out = array_merge($_out, $_temp);
+                if (!empty($this->batchIds)) {
+                    $filters = static::buildIdsFilter($this->batchIds, $partitionKey);
+                    foreach ($filters as $filter) {
+                        $temp = $this->queryEntities($this->transactionTable, $filter, $fields, $extras, true);
+                        $out = array_merge($out, $temp);
                     }
                 }
                 break;
@@ -990,10 +990,10 @@ class Table extends BaseDbTableResource
                 break;
         }
 
-        $this->_batchIds = array();
-        $this->_batchRecords = array();
+        $this->batchIds = array();
+        $this->batchRecords = array();
 
-        return $_out;
+        return $out;
     }
 
     /**
@@ -1007,7 +1007,7 @@ class Table extends BaseDbTableResource
         switch ($this->getAction()) {
             case Verbs::POST:
                 $this->backupOps->addDeleteEntity(
-                    $this->_transactionTable,
+                    $this->transactionTable,
                     $record->getPartitionKey(),
                     $record->getRowKey()
                 );
@@ -1017,7 +1017,7 @@ class Table extends BaseDbTableResource
             case Verbs::MERGE:
             case Verbs::PATCH:
             case Verbs::DELETE:
-                $this->batchOps->addUpdateEntity($this->_transactionTable, $record);
+                $this->batchOps->addUpdateEntity($this->transactionTable, $record);
                 break;
 
             default:
@@ -1039,7 +1039,7 @@ class Table extends BaseDbTableResource
                 case Verbs::PATCH:
                 case Verbs::MERGE:
                 case Verbs::DELETE:
-                    /** @var BatchResult $_result */
+                    /** @var BatchResult $result */
                     $this->service->getConnection()->batch($this->backupOps);
                     break;
 

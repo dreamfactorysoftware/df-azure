@@ -30,7 +30,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
     /**
      * @var BlobRestProxy|null
      */
-    protected $_blobConn = null;
+    protected $blobConn = null;
 
     //*************************************************************************
     //	Methods
@@ -41,7 +41,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
      */
     protected function checkConnection()
     {
-        if (!isset($this->_blobConn)) {
+        if (!isset($this->blobConn)) {
             throw new DfException('No valid connection to blob file storage.');
         }
     }
@@ -57,35 +57,35 @@ class AzureBlobFileSystem extends RemoteFileSystem
      */
     public function __construct($config)
     {
-        $_credentials = $config;
+        $credentials = $config;
         $this->container = ArrayUtils::get($config, 'container');
 
-        //Session::replaceLookups( $_credentials, true );
+        //Session::replaceLookups( $credentials, true );
 
-        $_connectionString = ArrayUtils::get($_credentials, 'connection_string');
-        if (empty($_connectionString)) {
-            $_name = ArrayUtils::get($_credentials, 'account_name', ArrayUtils::get($_credentials, 'AccountName'));
-            if (empty($_name)) {
+        $connectionString = ArrayUtils::get($credentials, 'connection_string');
+        if (empty($connectionString)) {
+            $name = ArrayUtils::get($credentials, 'account_name', ArrayUtils::get($credentials, 'AccountName'));
+            if (empty($name)) {
                 throw new InvalidArgumentException('WindowsAzure account name can not be empty.');
             }
 
-            $_key = ArrayUtils::get($_credentials, 'account_key', ArrayUtils::get($_credentials, 'AccountKey'));
-            if (empty($_key)) {
+            $key = ArrayUtils::get($credentials, 'account_key', ArrayUtils::get($credentials, 'AccountKey'));
+            if (empty($key)) {
                 throw new InvalidArgumentException('WindowsAzure account key can not be empty.');
             }
 
-            $_protocol = ArrayUtils::get($_credentials, 'protocol', 'https');
-            $_connectionString = "DefaultEndpointsProtocol=$_protocol;AccountName=$_name;AccountKey=$_key";
+            $protocol = ArrayUtils::get($credentials, 'protocol', 'https');
+            $connectionString = "DefaultEndpointsProtocol=$protocol;AccountName=$name;AccountKey=$key";
         }
 
         try {
-            $this->_blobConn = ServicesBuilder::getInstance()->createBlobService($_connectionString);
+            $this->blobConn = ServicesBuilder::getInstance()->createBlobService($connectionString);
 
             if (!$this->containerExists($this->container)) {
                 $this->createContainer(['name' => $this->container]);
             }
-        } catch (\Exception $_ex) {
-            throw new InternalServerErrorException("Windows Azure Blob Service Exception:\n{$_ex->getMessage()}");
+        } catch (\Exception $ex) {
+            throw new InternalServerErrorException("Windows Azure Blob Service Exception:\n{$ex->getMessage()}");
         }
     }
 
@@ -94,7 +94,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
      */
     public function __destruct()
     {
-        unset($this->_blobConn);
+        unset($this->blobConn);
     }
 
     /**
@@ -125,16 +125,16 @@ class AzureBlobFileSystem extends RemoteFileSystem
         }
 
         /** @var \WindowsAzure\Blob\Models\ListContainersResult $result */
-        $result = $this->_blobConn->listContainers();
+        $result = $this->blobConn->listContainers();
 
-        /** @var \WindowsAzure\Blob\Models\Container[] $_items */
-        $_items = $result->getContainers();
+        /** @var \WindowsAzure\Blob\Models\Container[] $items */
+        $items = $result->getContainers();
         $result = [];
-        foreach ($_items as $_item) {
-            $_name = $_item->getName();
-            $out = ['name' => $_name, 'path' => $_name];
+        foreach ($items as $item) {
+            $name = $item->getName();
+            $out = ['name' => $name, 'path' => $name];
             if ($include_properties) {
-                $props = $_item->getProperties();
+                $props = $item->getProperties();
                 $out['last_modified'] = gmdate(static::TIMESTAMP_FORMAT, $props->getLastModified()->getTimestamp());
             }
             $result[] = $out;
@@ -167,7 +167,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
 
         $result = ['name' => $container];
         /** @var \WindowsAzure\Blob\Models\GetContainerPropertiesResult $props */
-        $props = $this->_blobConn->getContainerProperties($container);
+        $props = $this->blobConn->getContainerProperties($container);
         $result['last_modified'] = gmdate(static::TIMESTAMP_FORMAT, $props->getLastModified()->getTimestamp());
 
         return $result;
@@ -185,7 +185,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
     {
         $this->checkConnection();
         try {
-            $this->_blobConn->getContainerProperties($container);
+            $this->blobConn->getContainerProperties($container);
 
             return true;
         } catch (\Exception $ex) {
@@ -208,17 +208,17 @@ class AzureBlobFileSystem extends RemoteFileSystem
     {
         $this->checkConnection();
 
-        $_name = ArrayUtils::get($properties, 'name', ArrayUtils::get($properties, 'path'));
-        if (empty($_name)) {
+        $name = ArrayUtils::get($properties, 'name', ArrayUtils::get($properties, 'path'));
+        if (empty($name)) {
             throw new DfException('No name found for container in create request.');
         }
         $options = new CreateContainerOptions();
         $options->setMetadata($metadata);
 //		$options->setPublicAccess('blob');
 
-        $this->_blobConn->createContainer($_name, $options);
+        $this->blobConn->createContainer($name, $options);
 
-        return ['name' => $_name, 'path' => $_name];
+        return ['name' => $name, 'path' => $name];
     }
 
     /**
@@ -238,7 +238,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
         $options->setMetadata($properties);
 //		$options->setPublicAccess('blob');
 
-        $this->_blobConn->setContainerMetadata($container, $options);
+        $this->blobConn->setContainerMetadata($container, $options);
     }
 
     /**
@@ -252,7 +252,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
     {
         try {
             $this->checkConnection();
-            $this->_blobConn->deleteContainer($container);
+            $this->blobConn->deleteContainer($container);
         } catch (\Exception $ex) {
             if (false === stripos($ex->getMessage(), 'does not exist')) {
                 throw $ex;
@@ -274,7 +274,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
         try {
             $this->checkConnection();
             $name = $this->fixBlobName($name);
-            $this->_blobConn->getBlobProperties($container, $name);
+            $this->blobConn->getBlobProperties($container, $name);
 
             return true;
         } catch (\Exception $ex) {
@@ -304,7 +304,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
             $options->setContentType($type);
         }
 
-        $this->_blobConn->createBlockBlob($container, $this->fixBlobName($name), $blob, $options);
+        $this->blobConn->createBlockBlob($container, $this->fixBlobName($name), $blob, $options);
     }
 
     /**
@@ -318,12 +318,12 @@ class AzureBlobFileSystem extends RemoteFileSystem
      */
     public function putBlobFromFile($container, $name, $localFileName = '', $type = '')
     {
-        $_blob = file_get_contents($localFileName);
-        if (false === $_blob) {
+        $blob = file_get_contents($localFileName);
+        if (false === $blob) {
             throw new InternalServerErrorException("Failed to get contents of uploaded file.");
         }
 
-        $this->putBlobData($container, $name, $_blob, $type);
+        $this->putBlobData($container, $name, $blob, $type);
     }
 
     /**
@@ -339,7 +339,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
     public function copyBlob($container, $name, $src_container, $src_name, $properties = [])
     {
         $this->checkConnection();
-        $this->_blobConn->copyBlob($container, $this->fixBlobName($name), $src_container,
+        $this->blobConn->copyBlob($container, $this->fixBlobName($name), $src_container,
             $this->fixBlobName($src_name));
     }
 
@@ -356,7 +356,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
     {
         $this->checkConnection();
         /** @var GetBlobResult $results */
-        $results = $this->_blobConn->getBlob($container, $this->fixBlobName($name));
+        $results = $this->blobConn->getBlob($container, $this->fixBlobName($name));
         file_put_contents($localFileName, stream_get_contents($results->getContentStream()));
     }
 
@@ -371,7 +371,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
     {
         $this->checkConnection();
         /** @var GetBlobResult $results */
-        $results = $this->_blobConn->getBlob($container, $this->fixBlobName($name));
+        $results = $this->blobConn->getBlob($container, $this->fixBlobName($name));
 
         return stream_get_contents($results->getContentStream());
     }
@@ -387,7 +387,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
     {
         try {
             $this->checkConnection();
-            $this->_blobConn->deleteBlob($container, $this->fixBlobName($name));
+            $this->blobConn->deleteBlob($container, $this->fixBlobName($name));
         } catch (\Exception $ex) {
             if (false === stripos($ex->getMessage(), 'does not exist')) {
                 throw $ex;
@@ -420,7 +420,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
         }
 
         /** @var ListBlobsResult $results */
-        $results = $this->_blobConn->listBlobs($container, $options);
+        $results = $this->blobConn->listBlobs($container, $options);
         $blobs = $results->getBlobs();
         $prefixes = $results->getBlobPrefixes();
         $out = [];
@@ -468,7 +468,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
         $this->checkConnection();
         $name = $this->fixBlobName($name);
         /** @var GetBlobPropertiesResult $result */
-        $result = $this->_blobConn->getBlobProperties($container, $name);
+        $result = $this->blobConn->getBlobProperties($container, $name);
         $props = $result->getProperties();
         $file = [
             'name'           => $name,
@@ -493,7 +493,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
         try {
             $this->checkConnection();
             /** @var GetBlobResult $blob */
-            $blob = $this->_blobConn->getBlob($container, $blobName);
+            $blob = $this->blobConn->getBlob($container, $blobName);
             $props = $blob->getProperties();
 
             header('Last-Modified: ' . gmdate(static::TIMESTAMP_FORMAT, $props->getLastModified()->getTimestamp()));
@@ -506,7 +506,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
 
             header("Content-Disposition: $disposition; filename=\"$blobName\";");
             fpassthru($blob->getContentStream());
-//            $this->_blobConn->registerStreamWrapper();
+//            $this->blobConn->registerStreamWrapper();
 //            $blobUrl = 'azure://' . $container . '/' . $blobName;
 //            readfile($blobUrl);
         } catch (\Exception $ex) {
