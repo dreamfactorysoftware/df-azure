@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Core\Azure\Components;
 
+use DreamFactory\Core\Utility\Session;
 use InvalidArgumentException;
 use DreamFactory\Core\Components\RemoteFileSystem;
 use DreamFactory\Library\Utility\ArrayUtils;
@@ -60,7 +61,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
         $credentials = $config;
         $this->container = ArrayUtils::get($config, 'container');
 
-        //Session::replaceLookups( $credentials, true );
+        Session::replaceLookups( $credentials, true );
 
         $connectionString = ArrayUtils::get($credentials, 'connection_string');
         if (empty($connectionString)) {

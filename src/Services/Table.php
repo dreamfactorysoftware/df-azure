@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Core\Azure\Services;
 
+use DreamFactory\Core\Utility\Session;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
@@ -76,7 +77,7 @@ class Table extends BaseNoSqlDbService
         parent::__construct($settings);
 
         $config = ArrayUtils::clean(ArrayUtils::get($settings, 'config'));
-//        Session::replaceLookups( $config, true );
+        Session::replaceLookups( $config, true );
 
         $dsn = strval(ArrayUtils::get($config, 'connection_string'));
         if (empty($dsn)) {

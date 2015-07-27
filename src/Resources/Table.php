@@ -1,6 +1,8 @@
 <?php
 namespace DreamFactory\Core\Azure\Resources;
 
+use DreamFactory\Core\Enums\ApiOptions;
+use DreamFactory\Core\Utility\Session;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Library\Utility\Enums\Verbs;
 use DreamFactory\Library\Utility\Inflector;
@@ -125,7 +127,7 @@ class Table extends BaseDbTableResource
     {
         $record = DbUtilities::validateAsArray($record, null, false, 'There are no fields in the record.');
 
-        $fields = ArrayUtils::get($extras, 'fields');
+        $fields = ArrayUtils::get($extras, ApiOptions::FIELDS);
         $ssFilters = ArrayUtils::get($extras, 'ss_filters');
         try {
             // parse filter
@@ -152,7 +154,7 @@ class Table extends BaseDbTableResource
     {
         $record = DbUtilities::validateAsArray($record, null, false, 'There are no fields in the record.');
 
-        $fields = ArrayUtils::get($extras, 'fields');
+        $fields = ArrayUtils::get($extras, ApiOptions::FIELDS);
         $ssFilters = ArrayUtils::get($extras, 'ss_filters');
         try {
             // parse filter
@@ -190,7 +192,7 @@ class Table extends BaseDbTableResource
             throw new BadRequestException("Filter for delete request can not be empty.");
         }
 
-        $fields = ArrayUtils::get($extras, 'fields');
+        $fields = ArrayUtils::get($extras, ApiOptions::FIELDS);
         $ssFilters = ArrayUtils::get($extras, 'ss_filters');
         try {
             $filter = static::buildCriteriaArray($filter, $params, $ssFilters);
@@ -215,17 +217,17 @@ class Table extends BaseDbTableResource
      */
     public function retrieveRecordsByFilter($table, $filter = null, $params = array(), $extras = array())
     {
-        $fields = ArrayUtils::get($extras, 'fields');
+        $fields = ArrayUtils::get($extras, ApiOptions::FIELDS);
         $ssFilters = ArrayUtils::get($extras, 'ss_filters');
 
         $options = new QueryEntitiesOptions();
         $options->setSelectFields(array());
-        if (!empty($fields) && ('*' != $fields)) {
+        if (!empty($fields) && (ApiOptions::FIELDS_ALL != $fields)) {
             $fields = array_map('trim', explode(',', trim($fields, ',')));
             $options->setSelectFields($fields);
         }
 
-        $limit = intval(ArrayUtils::get($extras, 'limit', 0));
+        $limit = intval(ArrayUtils::get($extras, ApiOptions::LIMIT, 0));
         if ($limit > 0) {
             $options->setTop($limit);
         }
@@ -275,14 +277,14 @@ class Table extends BaseDbTableResource
         $options = new QueryEntitiesOptions();
         $options->setSelectFields(array());
 
-        if (!empty($fields) && ('*' != $fields)) {
+        if (!empty($fields) && (ApiOptions::FIELDS_ALL != $fields)) {
             if (!is_array($fields)) {
                 $fields = array_map('trim', explode(',', trim($fields, ',')));
             }
             $options->setSelectFields($fields);
         }
 
-        $limit = intval(ArrayUtils::get($extras, 'limit', 0));
+        $limit = intval(ArrayUtils::get($extras, ApiOptions::LIMIT, 0));
         if ($limit > 0) {
             $options->setTop($limit);
         }
@@ -442,13 +444,13 @@ class Table extends BaseDbTableResource
      *
      * @return array
      */
-    protected static function parseEntityToRecord($entity, $include = '*', $record = array())
+    protected static function parseEntityToRecord($entity, $include = ApiOptions::FIELDS_ALL, $record = array())
     {
         if (!empty($entity)) {
             if (empty($include)) {
                 $record[static::PARTITION_KEY] = $entity->getPartitionKey();
                 $record[static::ROW_KEY] = $entity->getRowKey();
-            } elseif ('*' == $include) {
+            } elseif (ApiOptions::FIELDS_ALL == $include) {
                 // return all properties
                 /** @var Property[] $properties */
                 $properties = $entity->getProperties();
@@ -498,7 +500,7 @@ class Table extends BaseDbTableResource
 
         // build filter array if necessary, add server-side filters if necessary
         if (!is_array($filter)) {
-//            Session::replaceLookups( $filter );
+            Session::replaceLookups( $filter );
             $criteria = static::parseFilter($filter, $params);
         } else {
             $criteria = $filter;
@@ -746,7 +748,7 @@ class Table extends BaseDbTableResource
         $single = false
     ){
         $ssFilters = ArrayUtils::get($extras, 'ss_filters');
-        $fields = ArrayUtils::get($extras, 'fields');
+        $fields = ArrayUtils::get($extras, ApiOptions::FIELDS);
         $fieldsInfo = ArrayUtils::get($extras, 'fields_info');
         $requireMore = ArrayUtils::get($extras, 'require_more');
         $updates = ArrayUtils::get($extras, 'updates');
@@ -931,7 +933,7 @@ class Table extends BaseDbTableResource
             return null;
         }
 
-        $fields = ArrayUtils::get($extras, 'fields');
+        $fields = ArrayUtils::get($extras, ApiOptions::FIELDS);
         $partitionKey = ArrayUtils::get($extras, static::PARTITION_KEY);
 
         $out = array();
