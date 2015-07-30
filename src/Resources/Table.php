@@ -123,7 +123,7 @@ class Table extends BaseDbTableResource
     /**
      * {@inheritdoc}
      */
-    public function updateRecordsByFilter($table, $record, $filter = null, $params = array(), $extras = array())
+    public function updateRecordsByFilter($table, $record, $filter = null, $params = [], $extras = [])
     {
         $record = DbUtilities::validateAsArray($record, null, false, 'There are no fields in the record.');
 
@@ -150,7 +150,7 @@ class Table extends BaseDbTableResource
     /**
      * {@inheritdoc}
      */
-    public function patchRecordsByFilter($table, $record, $filter = null, $params = array(), $extras = array())
+    public function patchRecordsByFilter($table, $record, $filter = null, $params = [], $extras = [])
     {
         $record = DbUtilities::validateAsArray($record, null, false, 'There are no fields in the record.');
 
@@ -177,7 +177,7 @@ class Table extends BaseDbTableResource
     /**
      * {@inheritdoc}
      */
-    public function truncateTable($table, $extras = array())
+    public function truncateTable($table, $extras = [])
     {
         // todo Better way?
         parent::truncateTable($table, $extras);
@@ -186,7 +186,7 @@ class Table extends BaseDbTableResource
     /**
      * {@inheritdoc}
      */
-    public function deleteRecordsByFilter($table, $filter, $params = array(), $extras = array())
+    public function deleteRecordsByFilter($table, $filter, $params = [], $extras = [])
     {
         if (empty($filter)) {
             throw new BadRequestException("Filter for delete request can not be empty.");
@@ -215,13 +215,13 @@ class Table extends BaseDbTableResource
     /**
      * {@inheritdoc}
      */
-    public function retrieveRecordsByFilter($table, $filter = null, $params = array(), $extras = array())
+    public function retrieveRecordsByFilter($table, $filter = null, $params = [], $extras = [])
     {
         $fields = ArrayUtils::get($extras, ApiOptions::FIELDS);
         $ssFilters = ArrayUtils::get($extras, 'ss_filters');
 
         $options = new QueryEntitiesOptions();
-        $options->setSelectFields(array());
+        $options->setSelectFields([]);
         if (!empty($fields) && (ApiOptions::FIELDS_ALL != $fields)) {
             $fields = array_map('trim', explode(',', trim($fields, ',')));
             $options->setSelectFields($fields);
@@ -248,11 +248,11 @@ class Table extends BaseDbTableResource
      */
     protected function getIdsInfo($table, $fields_info = null, &$requested_fields = null, $requested_types = null)
     {
-        $requested_fields = array(static::PARTITION_KEY, static::ROW_KEY); // can only be this
-        $ids = array(
-            array('name' => static::PARTITION_KEY, 'type' => 'string', 'required' => true),
-            array('name' => static::ROW_KEY, 'type' => 'string', 'required' => true)
-        );
+        $requested_fields = [static::PARTITION_KEY, static::ROW_KEY]; // can only be this
+        $ids = [
+            ['name' => static::PARTITION_KEY, 'type' => 'string', 'required' => true],
+            ['name' => static::ROW_KEY, 'type' => 'string', 'required' => true]
+        ];
 
         return $ids;
     }
@@ -271,11 +271,11 @@ class Table extends BaseDbTableResource
         $table,
         $parsed_filter = '',
         $fields = null,
-        $extras = array(),
+        $extras = [],
         $parse_results = false
     ){
         $options = new QueryEntitiesOptions();
-        $options->setSelectFields(array());
+        $options->setSelectFields([]);
 
         if (!empty($fields) && (ApiOptions::FIELDS_ALL != $fields)) {
             if (!is_array($fields)) {
@@ -324,7 +324,7 @@ class Table extends BaseDbTableResource
      */
     protected function parseRecord($record, $fields_info, $filter_info = null, $for_update = false, $old_record = null)
     {
-        $parsed = (empty($fields_info)) ? $record : array();
+        $parsed = (empty($fields_info)) ? $record : [];
 
         unset($parsed['Timestamp']); // not set-able
 
@@ -399,7 +399,7 @@ class Table extends BaseDbTableResource
      *
      * @return Entity
      */
-    protected static function parseRecordToEntity($record = array(), $entity = null, $exclude = array())
+    protected static function parseRecordToEntity($record = [], $entity = null, $exclude = [])
     {
         if (empty($entity)) {
             $entity = new Entity();
@@ -444,7 +444,7 @@ class Table extends BaseDbTableResource
      *
      * @return array
      */
-    protected static function parseEntityToRecord($entity, $include = ApiOptions::FIELDS_ALL, $record = array())
+    protected static function parseEntityToRecord($entity, $include = ApiOptions::FIELDS_ALL, $record = [])
     {
         if (!empty($entity)) {
             if (empty($include)) {
@@ -470,10 +470,10 @@ class Table extends BaseDbTableResource
         return $record;
     }
 
-    protected static function parseEntitiesToRecords($entities, $include = '*', $records = array())
+    protected static function parseEntitiesToRecords($entities, $include = '*', $records = [])
     {
         if (!is_array($records)) {
-            $records = array();
+            $records = [];
         }
         foreach ($entities as $entity) {
             if ($entity instanceof BatchError) {
@@ -500,7 +500,7 @@ class Table extends BaseDbTableResource
 
         // build filter array if necessary, add server-side filters if necessary
         if (!is_array($filter)) {
-            Session::replaceLookups( $filter );
+            Session::replaceLookups($filter);
             $criteria = static::parseFilter($filter, $params);
         } else {
             $criteria = $filter;
@@ -563,7 +563,7 @@ class Table extends BaseDbTableResource
      *
      * @return array
      */
-    protected static function parseFilter($filter, $params = array())
+    protected static function parseFilter($filter, $params = [])
     {
         if (empty($filter)) {
             return '';
@@ -575,15 +575,15 @@ class Table extends BaseDbTableResource
 
         // handle logical operators first
         // supported logical operators are or, and, not
-        $search = array(' || ', ' && ', ' OR ', ' AND ', ' NOR ', ' NOT ');
-        $replace = array(' or ', ' and ', ' or ', ' and ', ' nor ', ' not ');
+        $search = [' || ', ' && ', ' OR ', ' AND ', ' NOR ', ' NOT '];
+        $replace = [' or ', ' and ', ' or ', ' and ', ' nor ', ' not '];
         $filter = trim(str_ireplace($search, $replace, ' ' . $filter)); // space added for 'not' case
 
         // the rest should be comparison operators
         // supported comparison operators are eq, ne, gt, ge, lt, le
         $search =
-            array('!=', '>=', '<=', '>', '<', '=', ' EQ ', ' NE ', ' LT ', ' LTE ', ' LE ', ' GT ', ' GTE', ' GE ');
-        $replace = array(
+            ['!=', '>=', '<=', '>', '<', '=', ' EQ ', ' NE ', ' LT ', ' LTE ', ' LE ', ' GT ', ' GTE', ' GE '];
+        $replace = [
             ' ne ',
             ' ge ',
             ' le ',
@@ -598,7 +598,7 @@ class Table extends BaseDbTableResource
             ' gt ',
             ' ge ',
             ' ge '
-        );
+        ];
         $filter = trim(str_ireplace($search, $replace, $filter));
 
 //			WHERE name LIKE "%Joe%"	not supported
@@ -628,7 +628,7 @@ class Table extends BaseDbTableResource
             $ids = array_map('trim', explode(',', trim($ids, ',')));
         }
 
-        $filters = array();
+        $filters = [];
         $filter = '';
         $count = 0;
         foreach ($ids as $id) {
@@ -685,7 +685,7 @@ class Table extends BaseDbTableResource
                     }
                 }
             } else {
-                $id = array();
+                $id = [];
                 foreach ($ids_info as $info) {
                     $name = ArrayUtils::get($info, 'name');
                     $value = ArrayUtils::get($record, $name, null, $remove);
@@ -719,7 +719,7 @@ class Table extends BaseDbTableResource
         if (!empty($id)) {
             return $id;
         } elseif ($on_create) {
-            return array();
+            return [];
         }
 
         return false;
@@ -755,7 +755,7 @@ class Table extends BaseDbTableResource
         $partitionKey = ArrayUtils::get($extras, static::PARTITION_KEY);
 
         if (!is_array($id)) {
-            $id = array(static::ROW_KEY => $id, static::PARTITION_KEY => $partitionKey);
+            $id = [static::ROW_KEY => $id, static::PARTITION_KEY => $partitionKey];
         }
         if (!empty($partitionKey)) {
             $id[static::PARTITION_KEY] = $partitionKey;
@@ -806,7 +806,7 @@ class Table extends BaseDbTableResource
 
         // only allow batch if rollback and same partition
         $batch = ($rollback && !empty($partitionKey));
-        $out = array();
+        $out = [];
         switch ($this->getAction()) {
             case Verbs::POST:
                 if ($batch) {
@@ -936,7 +936,7 @@ class Table extends BaseDbTableResource
         $fields = ArrayUtils::get($extras, ApiOptions::FIELDS);
         $partitionKey = ArrayUtils::get($extras, static::PARTITION_KEY);
 
-        $out = array();
+        $out = [];
         switch ($this->getAction()) {
             case Verbs::POST:
             case Verbs::PUT:
@@ -992,8 +992,8 @@ class Table extends BaseDbTableResource
                 break;
         }
 
-        $this->batchIds = array();
-        $this->batchRecords = array();
+        $this->batchIds = [];
+        $this->batchRecords = [];
 
         return $out;
     }
