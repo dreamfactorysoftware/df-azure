@@ -6,7 +6,6 @@ use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Exceptions\NotFoundException;
-use DreamFactory\Core\Contracts\ServiceResponseInterface;
 use DreamFactory\Core\Services\BaseNoSqlDbService;
 use DreamFactory\Core\Azure\Resources\Schema;
 use DreamFactory\Core\Azure\Resources\Table as TableResource;
@@ -132,6 +131,13 @@ class Table extends BaseNoSqlDbService
         return $this->dbConn;
     }
 
+    /**
+     */
+    public function getDefaultPartitionKey()
+    {
+        return $this->defaultPartitionKey;
+    }
+
     public function getTables()
     {
         /** @var QueryTablesResult $result */
@@ -189,48 +195,5 @@ class Table extends BaseNoSqlDbService
 
             throw $ex;
         }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getAccessList()
-    {
-        $resources = [];
-
-//        $refresh = $this->request->getParameterAsBool( 'refresh' );
-
-        $name = Schema::RESOURCE_NAME . '/';
-        $access = $this->getPermissions($name);
-        if (!empty($access)) {
-            $resources[] = $name;
-            $resources[] = $name . '*';
-        }
-
-        $result = $this->getTables();
-        foreach ($result as $name) {
-            $name = Schema::RESOURCE_NAME . '/' . $name;
-            $access = $this->getPermissions($name);
-            if (!empty($access)) {
-                $resources[] = $name;
-            }
-        }
-
-        $name = TableResource::RESOURCE_NAME . '/';
-        $access = $this->getPermissions($name);
-        if (!empty($access)) {
-            $resources[] = $name;
-            $resources[] = $name . '*';
-        }
-
-        foreach ($result as $name) {
-            $name = TableResource::RESOURCE_NAME . '/' . $name;
-            $access = $this->getPermissions($name);
-            if (!empty($access)) {
-                $resources[] = $name;
-            }
-        }
-
-        return $resources;
     }
 }

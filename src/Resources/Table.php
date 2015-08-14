@@ -53,10 +53,6 @@ class Table extends BaseDbTableResource
      */
     protected $parent = null;
     /**
-     * @var string
-     */
-    protected $defaultPartitionKey = null;
-    /**
      * @var null | BatchOperations
      */
     protected $batchOps = null;
@@ -670,7 +666,14 @@ class Table extends BaseDbTableResource
             if (1 == count($ids_info)) {
                 $info = $ids_info[0];
                 $name = ArrayUtils::get($info, 'name');
-                $value = (is_array($record)) ? ArrayUtils::get($record, $name, null, $remove) : $record;
+                if (is_array($record)) {
+                    $value = ArrayUtils::get($record, $name);
+                    if ($remove) {
+                        unset($record[$name]);
+                    }
+                } elseif (static::ROW_KEY == $name) {
+                    $value = $record;
+                }
                 if (!empty($value)) {
                     $type = ArrayUtils::get($info, 'type');
                     switch ($type) {
@@ -694,7 +697,14 @@ class Table extends BaseDbTableResource
                 $id = [];
                 foreach ($ids_info as $info) {
                     $name = ArrayUtils::get($info, 'name');
-                    $value = ArrayUtils::get($record, $name, null, $remove);
+                    if (is_array($record)) {
+                        $value = ArrayUtils::get($record, $name);
+                        if ($remove) {
+                            unset($record[$name]);
+                        }
+                    } elseif (static::ROW_KEY == $name) {
+                        $value = $record;
+                    }
                     if (!empty($value)) {
                         $type = ArrayUtils::get($info, 'type');
                         switch ($type) {
