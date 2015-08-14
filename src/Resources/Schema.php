@@ -7,7 +7,7 @@ use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Resources\BaseNoSqlDbSchemaResource;
 use DreamFactory\Core\Utility\DbUtilities;
-use DreamFactory\Core\Azure\Services\Table;
+use DreamFactory\Core\Azure\Services\Table as TableService;
 
 class Schema extends BaseNoSqlDbSchemaResource
 {
@@ -16,20 +16,28 @@ class Schema extends BaseNoSqlDbSchemaResource
     //*************************************************************************
 
     /**
-     * @var null|Table
+     * @var null|TableService
      */
-    protected $service = null;
+    protected $parent = null;
 
     //*************************************************************************
     //	Methods
     //*************************************************************************
 
     /**
-     * @return null|Table
+     * @return null|TableService
      */
     public function getService()
     {
-        return $this->service;
+        return $this->parent;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function listResources($schema = null, $refresh = false)
+    {
+        return $this->parent->getTables();
     }
 
     /**
@@ -42,10 +50,10 @@ class Schema extends BaseNoSqlDbSchemaResource
         }
 //        $refresh = $this->request->queryBool('refresh');
 
-        $names = $this->service->getTables();
+        $names = $this->listResources();
 
         $extras =
-            DbUtilities::getSchemaExtrasForTables($this->service->getServiceId(), $names, false, 'table,label,plural');
+            DbUtilities::getSchemaExtrasForTables($this->parent->getServiceId(), $names, false, 'table,label,plural');
 
         $tables = [];
         foreach ($names as $name) {
@@ -102,7 +110,7 @@ class Schema extends BaseNoSqlDbSchemaResource
         }
 
         try {
-            $this->service->getConnection()->createTable($table);
+            $this->parent->getConnection()->createTable($table);
             $out = array('name' => $table);
 
             return $out;
@@ -135,7 +143,7 @@ class Schema extends BaseNoSqlDbSchemaResource
         }
 
         try {
-            $this->service->getConnection()->deleteTable($name);
+            $this->parent->getConnection()->deleteTable($name);
 
             return array('name' => $name);
         } catch (\Exception $ex) {
