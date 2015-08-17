@@ -8,8 +8,6 @@ use DreamFactory\Library\Utility\Enums\Verbs;
 use DreamFactory\Library\Utility\Inflector;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use DreamFactory\Core\Exceptions\NotFoundException;
-use DreamFactory\Core\Exceptions\RestException;
 use DreamFactory\Core\Resources\BaseDbTableResource;
 use DreamFactory\Core\Utility\DbUtilities;
 use DreamFactory\Core\Azure\Services\Table as TableService;
@@ -53,11 +51,7 @@ class Table extends BaseDbTableResource
     /**
      * @var null|TableService
      */
-    protected $service = null;
-    /**
-     * @var string
-     */
-    protected $defaultPartitionKey = null;
+    protected $parent = null;
     /**
      * @var null | BatchOperations
      */
@@ -76,7 +70,15 @@ class Table extends BaseDbTableResource
      */
     public function getService()
     {
-        return $this->service;
+        return $this->parent;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function listResources($schema = null, $refresh = false)
+    {
+        return $this->parent->getTables();
     }
 
     /**
@@ -89,10 +91,10 @@ class Table extends BaseDbTableResource
         }
 //        $refresh = $this->request->queryBool('refresh');
 
-        $names = $this->service->getTables();
+        $names = $this->listResources();
 
         $extras =
-            DbUtilities::getSchemaExtrasForTables($this->service->getServiceId(), $names, false, 'table,label,plural');
+            DbUtilities::getSchemaExtrasForTables($this->parent->getServiceId(), $names, false, 'table,label,plural');
 
         $tables = [];
         foreach ($names as $name) {
@@ -136,7 +138,7 @@ class Table extends BaseDbTableResource
             $entities = $this->queryEntities($table, $filter, $fields, $extras);
             foreach ($entities as $entity) {
                 $entity = static::parseRecordToEntity($record, $entity);
-                $this->service->getConnection()->updateEntity($table, $entity);
+                $this->parent->getConnection()->updateEntity($table, $entity);
             }
 
             $out = static::parseEntitiesToRecords($entities, $fields);
@@ -163,7 +165,7 @@ class Table extends BaseDbTableResource
             $entities = $this->queryEntities($table, $filter, $fields, $extras);
             foreach ($entities as $entity) {
                 $entity = static::parseRecordToEntity($record, $entity);
-                $this->service->getConnection()->mergeEntity($table, $entity);
+                $this->parent->getConnection()->mergeEntity($table, $entity);
             }
 
             $out = static::parseEntitiesToRecords($entities, $fields);
@@ -201,7 +203,7 @@ class Table extends BaseDbTableResource
             foreach ($entities as $entity) {
                 $partitionKey = $entity->getPartitionKey();
                 $rowKey = $entity->getRowKey();
-                $this->service->getConnection()->deleteEntity($table, $partitionKey, $rowKey);
+                $this->parent->getConnection()->deleteEntity($table, $partitionKey, $rowKey);
             }
 
             $out = static::parseEntitiesToRecords($entities, $fields);
@@ -296,7 +298,7 @@ class Table extends BaseDbTableResource
 
         try {
             /** @var QueryEntitiesResult $result */
-            $result = $this->service->getConnection()->queryEntities($table, $options);
+            $result = $this->parent->getConnection()->queryEntities($table, $options);
 
             /** @var Entity[] $entities */
             $entities = $result->getEntities();
@@ -657,14 +659,21 @@ class Table extends BaseDbTableResource
         return $filters;
     }
 
-    protected function checkForIds(&$record, $ids_info, $extras = null, $on_create = false, $remove = false)
+    protected static function checkForIds(&$record, $ids_info, $extras = null, $on_create = false, $remove = false)
     {
         $id = null;
         if (!empty($ids_info)) {
             if (1 == count($ids_info)) {
                 $info = $ids_info[0];
                 $name = ArrayUtils::get($info, 'name');
-                $value = (is_array($record)) ? ArrayUtils::get($record, $name, null, $remove) : $record;
+                if (is_array($record)) {
+                    $value = ArrayUtils::get($record, $name);
+                    if ($remove) {
+                        unset($record[$name]);
+                    }
+                } elseif (static::ROW_KEY == $name) {
+                    $value = $record;
+                }
                 if (!empty($value)) {
                     $type = ArrayUtils::get($info, 'type');
                     switch ($type) {
@@ -688,7 +697,14 @@ class Table extends BaseDbTableResource
                 $id = [];
                 foreach ($ids_info as $info) {
                     $name = ArrayUtils::get($info, 'name');
-                    $value = ArrayUtils::get($record, $name, null, $remove);
+                    if (is_array($record)) {
+                        $value = ArrayUtils::get($record, $name);
+                        if ($remove) {
+                            unset($record[$name]);
+                        }
+                    } elseif (static::ROW_KEY == $name) {
+                        $value = $record;
+                    }
                     if (!empty($value)) {
                         $type = ArrayUtils::get($info, 'type');
                         switch ($type) {
@@ -820,7 +836,7 @@ class Table extends BaseDbTableResource
                 }
 
                 /** @var InsertEntityResult $result */
-                $result = $this->service->getConnection()->insertEntity($this->transactionTable, $entity);
+                $result = $this->parent->getConnection()->insertEntity($this->transactionTable, $entity);
 
                 if ($rollback) {
                     $this->addToRollback($entity);
@@ -840,7 +856,7 @@ class Table extends BaseDbTableResource
                 }
 
                 if ($rollback) {
-                    $old = $this->service->getConnection()->getEntity(
+                    $old = $this->parent->getConnection()->getEntity(
                         $this->transactionTable,
                         $entity->getRowKey(),
                         $entity->getPartitionKey()
@@ -849,7 +865,7 @@ class Table extends BaseDbTableResource
                 }
 
                 /** @var UpdateEntityResult $result */
-                $this->service->getConnection()->updateEntity($this->transactionTable, $entity);
+                $this->parent->getConnection()->updateEntity($this->transactionTable, $entity);
 
                 $out = static::parseEntityToRecord($entity, $fields);
                 break;
@@ -866,7 +882,7 @@ class Table extends BaseDbTableResource
                 }
 
                 if ($rollback || $requireMore) {
-                    $old = $this->service->getConnection()->getEntity($this->transactionTable, $rowKey, $partKey);
+                    $old = $this->parent->getConnection()->getEntity($this->transactionTable, $rowKey, $partKey);
                     if ($rollback) {
                         $this->addToRollback($old);
                     }
@@ -881,7 +897,7 @@ class Table extends BaseDbTableResource
                 $out = (empty($out)) ? static::parseEntityToRecord($entity, $fields) : $out;
 
                 /** @var UpdateEntityResult $result */
-                $this->service->getConnection()->mergeEntity($this->transactionTable, $entity);
+                $this->parent->getConnection()->mergeEntity($this->transactionTable, $entity);
                 break;
             case Verbs::DELETE:
                 if ($batch) {
@@ -895,7 +911,7 @@ class Table extends BaseDbTableResource
                 }
 
                 if ($rollback || $requireMore) {
-                    $old = $this->service->getConnection()->getEntity($this->transactionTable, $partKey, $rowKey);
+                    $old = $this->parent->getConnection()->getEntity($this->transactionTable, $partKey, $rowKey);
                     if ($rollback) {
                         $this->addToRollback($old);
                     }
@@ -904,7 +920,7 @@ class Table extends BaseDbTableResource
                     }
                 }
 
-                $this->service->getConnection()->deleteEntity($this->transactionTable, $partKey, $rowKey);
+                $this->parent->getConnection()->deleteEntity($this->transactionTable, $partKey, $rowKey);
 
                 $out = (empty($out)) ? static::parseEntityToRecord($entity, $fields) : $out;
                 break;
@@ -915,7 +931,7 @@ class Table extends BaseDbTableResource
                 }
 
                 /** @var GetEntityResult $result */
-                $result = $this->service->getConnection()->getEntity($this->transactionTable, $partKey, $rowKey);
+                $result = $this->parent->getConnection()->getEntity($this->transactionTable, $partKey, $rowKey);
 
                 $out = static::parseEntityToRecord($result->getEntity(), $fields);
                 break;
@@ -942,7 +958,7 @@ class Table extends BaseDbTableResource
             case Verbs::PUT:
                 if (isset($this->batchOps)) {
                     /** @var BatchResult $result */
-                    $this->service->getConnection()->batch($this->batchOps);
+                    $this->parent->getConnection()->batch($this->batchOps);
                 }
                 if (!empty($this->batchRecords)) {
                     $out = static::parseEntitiesToRecords($this->batchRecords, $fields);
@@ -953,7 +969,7 @@ class Table extends BaseDbTableResource
             case Verbs::PATCH:
                 if (isset($this->batchOps)) {
                     /** @var BatchResult $result */
-                    $this->service->getConnection()->batch($this->batchOps);
+                    $this->parent->getConnection()->batch($this->batchOps);
                 }
                 if (!empty($this->batchIds)) {
                     $filters = static::buildIdsFilter($this->batchIds, $partitionKey);
@@ -974,7 +990,7 @@ class Table extends BaseDbTableResource
                 }
                 if (isset($this->batchOps)) {
                     /** @var BatchResult $result */
-                    $this->service->getConnection()->batch($this->batchOps);
+                    $this->parent->getConnection()->batch($this->batchOps);
                 }
                 break;
 
@@ -1042,7 +1058,7 @@ class Table extends BaseDbTableResource
                 case Verbs::MERGE:
                 case Verbs::DELETE:
                     /** @var BatchResult $result */
-                    $this->service->getConnection()->batch($this->backupOps);
+                    $this->parent->getConnection()->batch($this->backupOps);
                     break;
 
                 default:
