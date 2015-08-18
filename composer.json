@@ -38,7 +38,7 @@
     }
   ],
   "require": {
-    "dreamfactory/df-core": "dev-develop as dev-master",
+    "dreamfactory/df-core": "~0.0.2",
     "dreamfactory/azure-sdk-for-php": "dev-develop as dev-master"
   },
   "autoload": {
