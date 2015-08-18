@@ -1,7 +1,6 @@
 {
   "name": "dreamfactory/df-azure",
   "description": "Microsoft Azure package containing Azure services for the DreamFactory Platform 2.0. ",
-  "minimum-stability": "dev",
   "keywords": [
     "dreamfactory",
     "dsp",
@@ -39,12 +38,17 @@
     }
   ],
   "require": {
-    "dreamfactory/df-core": "dev-develop as dev-master",
+    "dreamfactory/df-core": "~0.0.2",
     "dreamfactory/azure-sdk-for-php": "dev-develop as dev-master"
   },
   "autoload": {
     "psr-4": {
       "DreamFactory\\Core\\Azure\\": "src/"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-develop": "0.0.x-dev"
     }
   }
 }
