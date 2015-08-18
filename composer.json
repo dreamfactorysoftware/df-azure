@@ -1,7 +1,6 @@
 {
   "name": "dreamfactory/df-azure",
   "description": "Microsoft Azure package containing Azure services for the DreamFactory Platform 2.0. ",
-  "minimum-stability": "dev",
   "keywords": [
     "dreamfactory",
     "dsp",
@@ -45,6 +44,11 @@
   "autoload": {
     "psr-4": {
       "DreamFactory\\Core\\Azure\\": "src/"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-develop": "0.0.x-dev"
     }
   }
 }
