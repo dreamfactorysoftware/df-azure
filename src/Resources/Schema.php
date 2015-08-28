@@ -33,14 +33,6 @@ class Schema extends BaseNoSqlDbSchemaResource
     /**
      * {@inheritdoc}
      */
-    public function listResources($schema = null, $refresh = false)
-    {
-        return $this->parent->getTables();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function describeTable($table, $refresh = true)
     {
         $name = (is_array($table)) ? ArrayUtils::get($table, 'name') : $table;
@@ -68,9 +60,9 @@ class Schema extends BaseNoSqlDbSchemaResource
 
         try {
             $this->parent->getConnection()->createTable($table);
-            $out = array('name' => $table);
+            $this->refreshCachedTables();
 
-            return $out;
+            return array('name' => $table);
         } catch (\Exception $ex) {
             throw new InternalServerErrorException("Failed to create table '$table'.\n{$ex->getMessage()}");
         }
@@ -84,6 +76,8 @@ class Schema extends BaseNoSqlDbSchemaResource
         if (empty($table)) {
             throw new BadRequestException("No 'name' field in data.");
         }
+
+        $this->refreshCachedTables();
 
 //		throw new InternalServerErrorException( "Failed to update table '$name'." );
         return array('name' => $table);
@@ -101,6 +95,7 @@ class Schema extends BaseNoSqlDbSchemaResource
 
         try {
             $this->parent->getConnection()->deleteTable($name);
+            $this->refreshCachedTables();
 
             return array('name' => $name);
         } catch (\Exception $ex) {
