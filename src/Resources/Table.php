@@ -75,14 +75,6 @@ class Table extends BaseDbTableResource
     /**
      * {@inheritdoc}
      */
-    public function listResources($schema = null, $refresh = false)
-    {
-        return $this->parent->getTables();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function updateRecordsByFilter($table, $record, $filter = null, $params = [], $extras = [])
     {
         $record = DbUtilities::validateAsArray($record, null, false, 'There are no fields in the record.');
