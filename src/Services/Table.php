@@ -2,7 +2,7 @@
 namespace DreamFactory\Core\Azure\Services;
 
 use DreamFactory\Core\Components\DbSchemaExtras;
-use DreamFactory\Core\Components\TableNameSchema;
+use DreamFactory\Core\Database\TableNameSchema;
 use DreamFactory\Core\Utility\Session;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
@@ -177,7 +177,7 @@ class Table extends BaseNoSqlDbService
                 foreach ($extrasEntries as $extras) {
                     if (!empty($extraName = strtolower(strval($extras['table'])))) {
                         if (array_key_exists($extraName, $tables)) {
-                            $names[$extraName]->mergeDbExtras($extras);
+                            $names[$extraName]->fill($extras);
                         }
                     }
                 }

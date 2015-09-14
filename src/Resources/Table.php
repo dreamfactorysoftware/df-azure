@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Core\Azure\Resources;
 
+use DreamFactory\Core\Database\ColumnSchema;
 use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\Utility\Session;
 use DreamFactory\Library\Utility\ArrayUtils;
@@ -202,8 +203,8 @@ class Table extends BaseDbTableResource
     {
         $requested_fields = [static::PARTITION_KEY, static::ROW_KEY]; // can only be this
         $ids = [
-            ['name' => static::PARTITION_KEY, 'type' => 'string', 'required' => true],
-            ['name' => static::ROW_KEY, 'type' => 'string', 'required' => true]
+            new ColumnSchema(['name' => static::PARTITION_KEY, 'type' => 'string', 'required' => true]),
+            new ColumnSchema(['name' => static::ROW_KEY, 'type' => 'string', 'required' => true])
         ];
 
         return $ids;
@@ -276,72 +277,9 @@ class Table extends BaseDbTableResource
      */
     protected function parseRecord($record, $fields_info, $filter_info = null, $for_update = false, $old_record = null)
     {
-        $parsed = (empty($fields_info)) ? $record : [];
+        unset($record['Timestamp']); // not set-able
 
-        unset($parsed['Timestamp']); // not set-able
-
-        if (!empty($fields_info)) {
-            $keys = array_keys($record);
-            $values = array_values($record);
-            foreach ($fields_info as $fieldInfo) {
-                $name = ArrayUtils::get($fieldInfo, 'name', '');
-                $type = ArrayUtils::get($fieldInfo, 'type');
-                $pos = array_search($name, $keys);
-                if (false !== $pos) {
-                    $fieldVal = ArrayUtils::get($values, $pos);
-                    // due to conversion from XML to array, null or empty xml elements have the array value of an empty array
-                    if (is_array($fieldVal) && empty($fieldVal)) {
-                        $fieldVal = null;
-                    }
-
-                    /** validations **/
-
-                    $validations = ArrayUtils::get($fieldInfo, 'validation');
-
-                    if (!static::validateFieldValue($name, $fieldVal, $validations, $for_update, $fieldInfo)) {
-                        unset($keys[$pos]);
-                        unset($values[$pos]);
-                        continue;
-                    }
-
-                    $parsed[$name] = $fieldVal;
-                    unset($keys[$pos]);
-                    unset($values[$pos]);
-                }
-
-                // add or override for specific fields
-                switch ($type) {
-                    case 'timestamp_on_create':
-                        if (!$for_update) {
-                            $parsed[$name] = new \MongoDate();
-                        }
-                        break;
-                    case 'timestamp_on_update':
-                        $parsed[$name] = new \MongoDate();
-                        break;
-                    case 'user_id_on_create':
-                        if (!$for_update) {
-                            $userId = 1;//Session::getCurrentUserId();
-                            if (isset($userId)) {
-                                $parsed[$name] = $userId;
-                            }
-                        }
-                        break;
-                    case 'user_id_on_update':
-                        $userId = 1;//Session::getCurrentUserId();
-                        if (isset($userId)) {
-                            $parsed[$name] = $userId;
-                        }
-                        break;
-                }
-            }
-        }
-
-        if (!empty($filter_info)) {
-            $this->validateRecord($parsed, $filter_info, $for_update, $old_record);
-        }
-
-        return $parsed;
+        return parent::parseRecord($record, $fields_info, $filter_info, $for_update, $old_record);
     }
 
     /**
@@ -694,12 +632,12 @@ class Table extends BaseDbTableResource
     /**
      * {@inheritdoc}
      */
-    protected function initTransaction($handle = null)
+    protected function initTransaction($table_name, &$id_fields = null, $id_types = null, $require_ids = true)
     {
         $this->batchOps = null;
         $this->backupOps = null;
 
-        return parent::initTransaction($handle);
+        return parent::initTransaction($table_name, $id_fields, $id_types, $require_ids);
     }
 
     /**
@@ -715,7 +653,6 @@ class Table extends BaseDbTableResource
     ){
         $ssFilters = ArrayUtils::get($extras, 'ss_filters');
         $fields = ArrayUtils::get($extras, ApiOptions::FIELDS);
-        $fieldsInfo = ArrayUtils::get($extras, 'fields_info');
         $requireMore = ArrayUtils::get($extras, 'require_more');
         $updates = ArrayUtils::get($extras, 'updates');
         $partitionKey = ArrayUtils::get($extras, static::PARTITION_KEY);
@@ -750,7 +687,7 @@ class Table extends BaseDbTableResource
                     break;
             }
 
-            $record = $this->parseRecord($record, $fieldsInfo, $ssFilters, $forUpdate);
+            $record = $this->parseRecord($record, $this->tableFieldsInfo, $ssFilters, $forUpdate);
             if (empty($record)) {
                 throw new BadRequestException('No valid fields were found in record.');
             }
