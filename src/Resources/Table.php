@@ -553,7 +553,7 @@ class Table extends BaseDbTableResource
         if (!empty($ids_info)) {
             if (1 == count($ids_info)) {
                 $info = $ids_info[0];
-                $name = ArrayUtils::get($info, 'name');
+                $name = $info->getName(true);
                 if (is_array($record)) {
                     $value = ArrayUtils::get($record, $name);
                     if ($remove) {
@@ -563,28 +563,26 @@ class Table extends BaseDbTableResource
                     $value = $record;
                 }
                 if (!empty($value)) {
-                    $type = ArrayUtils::get($info, 'type');
-                    switch ($type) {
-                        case 'int':
+                    switch ($info->type) {
+                        case ColumnSchema::TYPE_INTEGER:
                             $value = intval($value);
                             break;
-                        case 'string':
+                        case ColumnSchema::TYPE_STRING:
                             $value = strval($value);
                             break;
                     }
                     $id = $value;
                 } else {
-                    $required = ArrayUtils::getBool($info, 'required');
                     // could be passed in as a parameter affecting all records
                     $param = ArrayUtils::get($extras, $name);
-                    if ($on_create && $required && empty($param)) {
+                    if ($on_create && $info->getRequired() && empty($param)) {
                         return false;
                     }
                 }
             } else {
                 $id = [];
                 foreach ($ids_info as $info) {
-                    $name = ArrayUtils::get($info, 'name');
+                    $name = $info->getName(true);
                     if (is_array($record)) {
                         $value = ArrayUtils::get($record, $name);
                         if ($remove) {
@@ -594,8 +592,7 @@ class Table extends BaseDbTableResource
                         $value = $record;
                     }
                     if (!empty($value)) {
-                        $type = ArrayUtils::get($info, 'type');
-                        switch ($type) {
+                        switch ($info->type) {
                             case 'int':
                                 $value = intval($value);
                                 break;
@@ -605,10 +602,9 @@ class Table extends BaseDbTableResource
                         }
                         $id[$name] = $value;
                     } else {
-                        $required = ArrayUtils::getBool($info, 'required');
                         // could be passed in as a parameter affecting all records
                         $param = ArrayUtils::get($extras, $name);
-                        if ($on_create && $required && empty($param)) {
+                        if ($on_create && $info->getRequired() && empty($param)) {
                             if (!is_array($record) && (static::ROW_KEY == $name)) {
                                 $id[$name] = $record;
                             } else {
