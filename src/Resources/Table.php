@@ -9,7 +9,6 @@ use DreamFactory\Library\Utility\Enums\Verbs;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Resources\BaseDbTableResource;
-use DreamFactory\Core\Utility\DbUtilities;
 use DreamFactory\Core\Azure\Services\Table as TableService;
 use WindowsAzure\Common\ServiceException;
 use WindowsAzure\Table\Models\BatchError;
@@ -78,7 +77,7 @@ class Table extends BaseDbTableResource
      */
     public function updateRecordsByFilter($table, $record, $filter = null, $params = [], $extras = [])
     {
-        $record = DbUtilities::validateAsArray($record, null, false, 'There are no fields in the record.');
+        $record = static::validateAsArray($record, null, false, 'There are no fields in the record.');
 
         $fields = ArrayUtils::get($extras, ApiOptions::FIELDS);
         $ssFilters = ArrayUtils::get($extras, 'ss_filters');
@@ -105,7 +104,7 @@ class Table extends BaseDbTableResource
      */
     public function patchRecordsByFilter($table, $record, $filter = null, $params = [], $extras = [])
     {
-        $record = DbUtilities::validateAsArray($record, null, false, 'There are no fields in the record.');
+        $record = static::validateAsArray($record, null, false, 'There are no fields in the record.');
 
         $fields = ArrayUtils::get($extras, ApiOptions::FIELDS);
         $ssFilters = ArrayUtils::get($extras, 'ss_filters');
