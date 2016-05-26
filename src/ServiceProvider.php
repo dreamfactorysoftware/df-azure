@@ -22,7 +22,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                     'description'    => 'File service supporting the Microsoft Azure Blob storage.',
                     'group'          => ServiceTypeGroups::FILE,
                     'config_handler' => AzureBlobConfig::class,
-                    'factory'          => function ($config){
+                    'factory'        => function ($config){
                         return new Blob($config);
                     }
                 ])
@@ -34,7 +34,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                     'description'    => 'Database service supporting the Microsoft Azure Table storage.',
                     'group'          => ServiceTypeGroups::DATABASE,
                     'config_handler' => AzureConfig::class,
-                    'make'           => function ($config){
+                    'factory'        => function ($config){
                         return new Table($config);
                     }
                 ])
