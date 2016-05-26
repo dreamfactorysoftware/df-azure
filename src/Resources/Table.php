@@ -10,19 +10,19 @@ use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Resources\BaseDbTableResource;
 use DreamFactory\Core\Azure\Services\Table as TableService;
-use WindowsAzure\Common\ServiceException;
-use WindowsAzure\Table\Models\BatchError;
-use WindowsAzure\Table\Models\BatchOperations;
-use WindowsAzure\Table\Models\BatchResult;
-use WindowsAzure\Table\Models\EdmType;
-use WindowsAzure\Table\Models\Entity;
-use WindowsAzure\Table\Models\Filters\QueryStringFilter;
-use WindowsAzure\Table\Models\GetEntityResult;
-use WindowsAzure\Table\Models\InsertEntityResult;
-use WindowsAzure\Table\Models\Property;
-use WindowsAzure\Table\Models\QueryEntitiesOptions;
-use WindowsAzure\Table\Models\QueryEntitiesResult;
-use WindowsAzure\Table\Models\UpdateEntityResult;
+use MicrosoftAzure\Storage\Common\ServiceException;
+use MicrosoftAzure\Storage\Table\Models\BatchError;
+use MicrosoftAzure\Storage\Table\Models\BatchOperations;
+use MicrosoftAzure\Storage\Table\Models\BatchResult;
+use MicrosoftAzure\Storage\Table\Models\EdmType;
+use MicrosoftAzure\Storage\Table\Models\Entity;
+use MicrosoftAzure\Storage\Table\Models\Filters\QueryStringFilter;
+use MicrosoftAzure\Storage\Table\Models\GetEntityResult;
+use MicrosoftAzure\Storage\Table\Models\InsertEntityResult;
+use MicrosoftAzure\Storage\Table\Models\Property;
+use MicrosoftAzure\Storage\Table\Models\QueryEntitiesOptions;
+use MicrosoftAzure\Storage\Table\Models\QueryEntitiesResult;
+use MicrosoftAzure\Storage\Table\Models\UpdateEntityResult;
 
 class Table extends BaseDbTableResource
 {

@@ -9,9 +9,9 @@ use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Services\BaseNoSqlDbService;
 use DreamFactory\Core\Azure\Resources\Schema;
 use DreamFactory\Core\Azure\Resources\Table as TableResource;
-use WindowsAzure\Common\ServicesBuilder;
-use WindowsAzure\Table\Models\QueryTablesResult;
-use WindowsAzure\Table\TableRestProxy;
+use MicrosoftAzure\Storage\Common\ServicesBuilder;
+use MicrosoftAzure\Storage\Table\Models\QueryTablesResult;
+use MicrosoftAzure\Storage\Table\TableRestProxy;
 
 /**
  * Table

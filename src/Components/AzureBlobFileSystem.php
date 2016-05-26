@@ -8,14 +8,14 @@ use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\DfException;
 use DreamFactory\Core\Exceptions\NotFoundException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use WindowsAzure\Blob\BlobRestProxy;
-use WindowsAzure\Common\ServicesBuilder;
-use WindowsAzure\Blob\Models\GetBlobResult;
-use WindowsAzure\Blob\Models\ListBlobsResult;
-use WindowsAzure\Blob\Models\ListBlobsOptions;
-use WindowsAzure\Blob\Models\CreateBlobOptions;
-use WindowsAzure\Blob\Models\CreateContainerOptions;
-use WindowsAzure\Blob\Models\GetBlobPropertiesResult;
+use MicrosoftAzure\Storage\Blob\BlobRestProxy;
+use MicrosoftAzure\Storage\Common\ServicesBuilder;
+use MicrosoftAzure\Storage\Blob\Models\GetBlobResult;
+use MicrosoftAzure\Storage\Blob\Models\ListBlobsResult;
+use MicrosoftAzure\Storage\Blob\Models\ListBlobsOptions;
+use MicrosoftAzure\Storage\Blob\Models\CreateBlobOptions;
+use MicrosoftAzure\Storage\Blob\Models\CreateContainerOptions;
+use MicrosoftAzure\Storage\Blob\Models\GetBlobPropertiesResult;
 
 /**
  * Class AzureBlobFileSystem
@@ -125,10 +125,10 @@ class AzureBlobFileSystem extends RemoteFileSystem
             return $this->listResource($include_properties);
         }
 
-        /** @var \WindowsAzure\Blob\Models\ListContainersResult $result */
+        /** @var \MicrosoftAzure\Storage\Blob\Models\ListContainersResult $result */
         $result = $this->blobConn->listContainers();
 
-        /** @var \WindowsAzure\Blob\Models\Container[] $items */
+        /** @var \MicrosoftAzure\Storage\Blob\Models\Container[] $items */
         $items = $result->getContainers();
         $result = [];
         foreach ($items as $item) {
@@ -167,7 +167,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
         $this->checkConnection();
 
         $result = ['name' => $container];
-        /** @var \WindowsAzure\Blob\Models\GetContainerPropertiesResult $props */
+        /** @var \MicrosoftAzure\Storage\Blob\Models\GetContainerPropertiesResult $props */
         $props = $this->blobConn->getContainerProperties($container);
         $result['last_modified'] = gmdate(static::TIMESTAMP_FORMAT, $props->getLastModified()->getTimestamp());
 
@@ -426,7 +426,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
         $prefixes = $results->getBlobPrefixes();
         $out = [];
 
-        /** @var \WindowsAzure\Blob\Models\Blob $blob */
+        /** @var \MicrosoftAzure\Storage\Blob\Models\Blob $blob */
         foreach ($blobs as $blob) {
             $name = $blob->getName();
             if (0 == strcmp($prefix, $name)) {
