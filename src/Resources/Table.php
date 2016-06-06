@@ -3,12 +3,12 @@ namespace DreamFactory\Core\Azure\Resources;
 
 use DreamFactory\Core\Database\Schema\ColumnSchema;
 use DreamFactory\Core\Enums\ApiOptions;
+use DreamFactory\Core\Resources\BaseNoSqlDbTableResource;
 use DreamFactory\Core\Utility\Session;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Library\Utility\Enums\Verbs;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use DreamFactory\Core\Resources\BaseDbTableResource;
 use DreamFactory\Core\Azure\Services\Table as TableService;
 use MicrosoftAzure\Storage\Common\ServiceException;
 use MicrosoftAzure\Storage\Table\Models\BatchError;
@@ -24,7 +24,7 @@ use MicrosoftAzure\Storage\Table\Models\QueryEntitiesOptions;
 use MicrosoftAzure\Storage\Table\Models\QueryEntitiesResult;
 use MicrosoftAzure\Storage\Table\Models\UpdateEntityResult;
 
-class Table extends BaseDbTableResource
+class Table extends BaseNoSqlDbTableResource
 {
     //*************************************************************************
     //	Constants
