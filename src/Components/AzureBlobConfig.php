@@ -50,14 +50,14 @@ class AzureBlobConfig implements ServiceConfigHandlerInterface
         $azureConfig = AzureConfig::find($id);
         $pathConfig = FilePublicPath::find($id);
         $configPath = [
-            'public_path' => ArrayUtils::get($config, 'public_path'),
-            'container'   => ArrayUtils::get($config, 'container')
+            'public_path' => array_get($config, 'public_path'),
+            'container'   => array_get($config, 'container')
         ];
         $configAzure = [
-            'service_id'   => ArrayUtils::get($config, 'service_id'),
-            'account_name' => ArrayUtils::get($config, 'account_name'),
-            'account_key'  => ArrayUtils::get($config, 'account_key'),
-            'protocol'     => ArrayUtils::get($config, 'protocol')
+            'service_id'   => array_get($config, 'service_id'),
+            'account_name' => array_get($config, 'account_name'),
+            'account_key'  => array_get($config, 'account_key'),
+            'protocol'     => array_get($config, 'protocol')
         ];
 
         ArrayUtils::removeNull($configAzure);

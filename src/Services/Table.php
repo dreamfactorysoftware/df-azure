@@ -4,7 +4,6 @@ namespace DreamFactory\Core\Azure\Services;
 use DreamFactory\Core\Components\DbSchemaExtras;
 use DreamFactory\Core\Database\Schema\TableSchema;
 use DreamFactory\Core\Utility\Session;
-use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Services\BaseNoSqlDbService;
 use DreamFactory\Core\Azure\Resources\Schema;
@@ -85,27 +84,27 @@ class Table extends BaseNoSqlDbService
     {
         parent::__construct($settings);
 
-        $config = ArrayUtils::clean(ArrayUtils::get($settings, 'config'));
+        $config = (array)array_get($settings, 'config');
         Session::replaceLookups( $config, true );
 
-        $dsn = strval(ArrayUtils::get($config, 'connection_string'));
+        $dsn = strval(array_get($config, 'connection_string'));
         if (empty($dsn)) {
-            $name = ArrayUtils::get($config, 'account_name', ArrayUtils::get($config, 'AccountName'));
+            $name = array_get($config, 'account_name', array_get($config, 'AccountName'));
             if (empty($name)) {
                 throw new \InvalidArgumentException('WindowsAzure account name can not be empty.');
             }
 
-            $key = ArrayUtils::get($config, 'account_key', ArrayUtils::get($config, 'AccountKey'));
+            $key = array_get($config, 'account_key', array_get($config, 'AccountKey'));
             if (empty($key)) {
                 throw new \InvalidArgumentException('WindowsAzure account key can not be empty.');
             }
 
-            $protocol = ArrayUtils::get($config, 'protocol', 'https');
+            $protocol = array_get($config, 'protocol', 'https');
             $dsn = "DefaultEndpointsProtocol=$protocol;AccountName=$name;AccountKey=$key";
         }
 
         // set up a default partition key
-        $partitionKey = ArrayUtils::get($config, static::PARTITION_KEY);
+        $partitionKey = array_get($config, static::PARTITION_KEY);
         if (!empty($partitionKey)) {
             $this->defaultPartitionKey = $partitionKey;
         }
