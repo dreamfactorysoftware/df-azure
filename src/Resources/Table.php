@@ -562,10 +562,10 @@ class Table extends BaseNoSqlDbTableResource
                 }
                 if (!empty($value)) {
                     switch ($info->type) {
-                        case ColumnSchema::TYPE_INTEGER:
+                        case DbSimpleTypes::TYPE_INTEGER:
                             $value = intval($value);
                             break;
-                        case ColumnSchema::TYPE_STRING:
+                        case DbSimpleTypes::TYPE_STRING:
                             $value = strval($value);
                             break;
                     }
