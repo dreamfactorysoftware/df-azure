@@ -4,7 +4,6 @@ namespace DreamFactory\Core\Azure\Components;
 use DreamFactory\Core\Utility\Session;
 use InvalidArgumentException;
 use DreamFactory\Core\Components\RemoteFileSystem;
-use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\DfException;
 use DreamFactory\Core\Exceptions\NotFoundException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
@@ -59,23 +58,23 @@ class AzureBlobFileSystem extends RemoteFileSystem
     public function __construct($config)
     {
         $credentials = $config;
-        $this->container = ArrayUtils::get($config, 'container');
+        $this->container = array_get($config, 'container');
 
         Session::replaceLookups( $credentials, true );
 
-        $connectionString = ArrayUtils::get($credentials, 'connection_string');
+        $connectionString = array_get($credentials, 'connection_string');
         if (empty($connectionString)) {
-            $name = ArrayUtils::get($credentials, 'account_name', ArrayUtils::get($credentials, 'AccountName'));
+            $name = array_get($credentials, 'account_name', array_get($credentials, 'AccountName'));
             if (empty($name)) {
                 throw new InvalidArgumentException('WindowsAzure account name can not be empty.');
             }
 
-            $key = ArrayUtils::get($credentials, 'account_key', ArrayUtils::get($credentials, 'AccountKey'));
+            $key = array_get($credentials, 'account_key', array_get($credentials, 'AccountKey'));
             if (empty($key)) {
                 throw new InvalidArgumentException('WindowsAzure account key can not be empty.');
             }
 
-            $protocol = ArrayUtils::get($credentials, 'protocol', 'https');
+            $protocol = array_get($credentials, 'protocol', 'https');
             $connectionString = "DefaultEndpointsProtocol=$protocol;AccountName=$name;AccountKey=$key";
         }
 
@@ -209,7 +208,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
     {
         $this->checkConnection();
 
-        $name = ArrayUtils::get($properties, 'name', ArrayUtils::get($properties, 'path'));
+        $name = array_get($properties, 'name', array_get($properties, 'path'));
         if (empty($name)) {
             throw new DfException('No name found for container in create request.');
         }

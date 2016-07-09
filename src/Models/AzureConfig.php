@@ -50,7 +50,7 @@ class AzureConfig extends BaseServiceConfigModel
                     ['label' => 'HTTP', 'name' => 'http'],
                     ['label' => 'HTTPS', 'name' => 'https'],
                 ];
-                $schema['description'] = 'Select the region to be accessed by this service connection.';
+                $schema['description'] = 'Select the HTTP protocol.';
                 break;
             case 'account_name':
                 $schema['description'] = 'A Windows Azure storage account name.';
