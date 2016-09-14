@@ -12,22 +12,20 @@ class AzureBlobConfig implements ServiceConfigHandlerInterface
     use FileServiceWithContainer;
 
     /**
-     * @param int $id
-     *
-     * @return array
+     * {@inheritdoc}
      */
-    public static function getConfig($id)
+    public static function getConfig($id, $protect = true)
     {
-        $azureConfig = AzureConfig::find($id);
-        $pathConfig = FilePublicPath::find($id);
-
         $config = [];
 
-        if (!empty($azureConfig)) {
+        /** @var AzureConfig $azureConfig */
+        if (!empty($azureConfig = AzureConfig::find($id))) {
+            $azureConfig->protectedView = $protect;
             $config = $azureConfig->toArray();
         }
 
-        if (!empty($pathConfig)) {
+        /** @var FilePublicPath $pathConfig */
+        if (!empty($pathConfig = FilePublicPath::find($id))) {
             $config = array_merge($config, $pathConfig->toArray());
         }
 
@@ -47,7 +45,9 @@ class AzureBlobConfig implements ServiceConfigHandlerInterface
      */
     public static function setConfig($id, $config)
     {
+        /** @var AzureConfig $azureConfig */
         $azureConfig = AzureConfig::find($id);
+        /** @var FilePublicPath $pathConfig */
         $pathConfig = FilePublicPath::find($id);
         $configPath = [
             'public_path' => array_get($config, 'public_path'),

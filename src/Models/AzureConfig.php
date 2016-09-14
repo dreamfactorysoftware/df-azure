@@ -13,9 +13,11 @@ class AzureConfig extends BaseServiceConfigModel
 {
     protected $table = 'azure_config';
 
+    protected $fillable = ['service_id', 'account_name', 'account_key', 'protocol'];
+
     protected $encrypted = ['account_name', 'account_key'];
 
-    protected $fillable = ['service_id', 'account_name', 'account_key', 'protocol'];
+    protected $protected = ['account_key'];
 
     /**
      * {@inheritdoc}
