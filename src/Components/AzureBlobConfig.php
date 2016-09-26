@@ -2,15 +2,12 @@
 namespace DreamFactory\Core\Azure\Components;
 
 use DreamFactory\Core\Azure\Models\AzureConfig;
-use DreamFactory\Core\Components\FileServiceWithContainer;
 use DreamFactory\Core\Contracts\ServiceConfigHandlerInterface;
 use DreamFactory\Core\Models\FilePublicPath;
 use DreamFactory\Library\Utility\ArrayUtils;
 
 class AzureBlobConfig implements ServiceConfigHandlerInterface
 {
-    use FileServiceWithContainer;
-
     /**
      * {@inheritdoc}
      */
@@ -95,19 +92,13 @@ class AzureBlobConfig implements ServiceConfigHandlerInterface
      */
     public static function getConfigSchema()
     {
-        $azureConfig = new AzureConfig();
-        $pathConfig = new FilePublicPath();
         $out = null;
-
-        $azureSchema = $azureConfig->getConfigSchema();
-        $pathSchema = $pathConfig->getConfigSchema();
-
-        static::updatePathSchema($pathSchema);
-
-        if (!empty($azureSchema)) {
+        $azureConfig = new AzureConfig();
+        if (!empty($azureSchema = $azureConfig->getConfigSchema())) {
             $out = $azureSchema;
         }
-        if (!empty($pathSchema)) {
+        $pathConfig = new FilePublicPath();
+        if (!empty($pathSchema = $pathConfig->getConfigSchema())) {
             $out = ($out) ? array_merge($out, $pathSchema) : $pathSchema;
         }
 
