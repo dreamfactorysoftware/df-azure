@@ -2,32 +2,27 @@
 namespace DreamFactory\Core\Azure\Components;
 
 use DreamFactory\Core\Azure\Models\AzureConfig;
-use DreamFactory\Core\Components\FileServiceWithContainer;
 use DreamFactory\Core\Contracts\ServiceConfigHandlerInterface;
 use DreamFactory\Core\Models\FilePublicPath;
 use DreamFactory\Library\Utility\ArrayUtils;
 
 class AzureBlobConfig implements ServiceConfigHandlerInterface
 {
-    use FileServiceWithContainer;
-
     /**
-     * @param int $id
-     *
-     * @return array
+     * {@inheritdoc}
      */
-    public static function getConfig($id)
+    public static function getConfig($id, $protect = true)
     {
-        $azureConfig = AzureConfig::find($id);
-        $pathConfig = FilePublicPath::find($id);
-
         $config = [];
 
-        if (!empty($azureConfig)) {
+        /** @var AzureConfig $azureConfig */
+        if (!empty($azureConfig = AzureConfig::find($id))) {
+            $azureConfig->protectedView = $protect;
             $config = $azureConfig->toArray();
         }
 
-        if (!empty($pathConfig)) {
+        /** @var FilePublicPath $pathConfig */
+        if (!empty($pathConfig = FilePublicPath::find($id))) {
             $config = array_merge($config, $pathConfig->toArray());
         }
 
@@ -47,7 +42,9 @@ class AzureBlobConfig implements ServiceConfigHandlerInterface
      */
     public static function setConfig($id, $config)
     {
+        /** @var AzureConfig $azureConfig */
         $azureConfig = AzureConfig::find($id);
+        /** @var FilePublicPath $pathConfig */
         $pathConfig = FilePublicPath::find($id);
         $configPath = [
             'public_path' => array_get($config, 'public_path'),
@@ -95,19 +92,13 @@ class AzureBlobConfig implements ServiceConfigHandlerInterface
      */
     public static function getConfigSchema()
     {
-        $azureConfig = new AzureConfig();
-        $pathConfig = new FilePublicPath();
         $out = null;
-
-        $azureSchema = $azureConfig->getConfigSchema();
-        $pathSchema = $pathConfig->getConfigSchema();
-
-        static::updatePathSchema($pathSchema);
-
-        if (!empty($azureSchema)) {
+        $azureConfig = new AzureConfig();
+        if (!empty($azureSchema = $azureConfig->getConfigSchema())) {
             $out = $azureSchema;
         }
-        if (!empty($pathSchema)) {
+        $pathConfig = new FilePublicPath();
+        if (!empty($pathSchema = $pathConfig->getConfigSchema())) {
             $out = ($out) ? array_merge($out, $pathSchema) : $pathSchema;
         }
 

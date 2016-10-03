@@ -8,6 +8,7 @@ use DreamFactory\Core\Exceptions\DfException;
 use DreamFactory\Core\Exceptions\NotFoundException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use MicrosoftAzure\Storage\Blob\BlobRestProxy;
+use MicrosoftAzure\Storage\Blob\Models\GetBlobOptions;
 use MicrosoftAzure\Storage\Common\ServicesBuilder;
 use MicrosoftAzure\Storage\Blob\Models\GetBlobResult;
 use MicrosoftAzure\Storage\Blob\Models\ListBlobsResult;
@@ -60,7 +61,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
         $credentials = $config;
         $this->container = array_get($config, 'container');
 
-        Session::replaceLookups( $credentials, true );
+        Session::replaceLookups($credentials, true);
 
         $connectionString = array_get($credentials, 'connection_string');
         if (empty($connectionString)) {
@@ -492,23 +493,35 @@ class AzureBlobFileSystem extends RemoteFileSystem
     {
         try {
             $this->checkConnection();
-            /** @var GetBlobResult $blob */
-            $blob = $this->blobConn->getBlob($container, $blobName);
-            $props = $blob->getProperties();
+            ///** @var GetBlobResult $blob */
+            //$blob = $this->blobConn->getBlob($container, $blobName);
+            $props = $this->blobConn->getBlobProperties($container, $blobName)->getProperties();
+            $size = $props->getContentLength();
+            $chunk = \Config::get('df.file_chunk_size');
+            $index = 0;
 
             header('Last-Modified: ' . gmdate(static::TIMESTAMP_FORMAT, $props->getLastModified()->getTimestamp()));
             header('Content-Type: ' . $props->getContentType());
             header('Content-Transfer-Encoding: ' . $props->getContentEncoding());
-            header('Content-Length:' . $props->getContentLength());
+            header('Content-Length:' . $size);
 
             $disposition =
                 (isset($params['disposition']) && !empty($params['disposition'])) ? $params['disposition'] : 'inline';
 
             header("Content-Disposition: $disposition; filename=\"$blobName\";");
-            fpassthru($blob->getContentStream());
-//            $this->blobConn->registerStreamWrapper();
-//            $blobUrl = 'azure://' . $container . '/' . $blobName;
-//            readfile($blobUrl);
+            ob_clean();
+
+            while ($index < $size) {
+                $option = new GetBlobOptions();
+                $option->setRangeStart($index);
+                $option->setRangeEnd($index + $chunk - 1);
+                $blob = $this->blobConn->getBlob($container, $blobName, $option);
+                $stream = $blob->getContentStream();
+                $length = $blob->getProperties()->getContentLength();
+                $index += $length;
+                flush();
+                fpassthru($stream);
+            }
         } catch (\Exception $ex) {
             if ('Resource could not be accessed.' == $ex->getMessage()) {
                 $status_header = "HTTP/1.1 404 The specified file '$blobName' does not exist.";
