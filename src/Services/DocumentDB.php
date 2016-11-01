@@ -37,6 +37,7 @@ class DocumentDB extends BaseNoSqlDbService
         ],
     ];
 
+    /** {@inheritdoc} */
     public function __construct(array $settings)
     {
         parent::__construct($settings);
@@ -61,11 +62,18 @@ class DocumentDB extends BaseNoSqlDbService
         $this->connection = new DocumentDBConnection($uri, $key, $database);
     }
 
+    /**
+     * Destroys the connection
+     */
     public function __destruct()
     {
         $this->connection = null;
     }
 
+    /**
+     * @return \DreamFactory\Core\Azure\Components\DocumentDBConnection|null
+     * @throws \DreamFactory\Core\Exceptions\InternalServerErrorException
+     */
     public function getConnection()
     {
         if (empty($this->connection)) {
@@ -75,6 +83,7 @@ class DocumentDB extends BaseNoSqlDbService
         return $this->connection;
     }
 
+    /** {@inheritdoc} */
     public function getTableNames($schema = null, $refresh = false, $use_alias = false)
     {
         if($refresh || (empty($this->tables) && null === $this->tables = $this->getFromCache('table_names'))){
@@ -100,6 +109,7 @@ class DocumentDB extends BaseNoSqlDbService
         return $this->tables;
     }
 
+    /** {@inheritdoc} */
     public function refreshTableCache()
     {
         $this->removeFromCache('table_names');
