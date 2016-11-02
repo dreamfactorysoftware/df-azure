@@ -4,6 +4,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- DF-155 Adding Azure DocumentDB service type
+
 ### Changed
 ### Fixed
 

@@ -7,12 +7,16 @@ use DreamFactory\Core\Exceptions\BadRequestException;
 
 class DocumentDbConfig extends BaseServiceConfigModel
 {
+    /** @var string  */
     protected $table = 'documentdb_config';
 
+    /** @var array  */
     protected $fillable = ['service_id', 'uri', 'key', 'database'];
 
+    /** @var array  */
     protected $encrypted = ['key'];
 
+    /** @var array  */
     protected $protected = ['key'];
 
     /**
