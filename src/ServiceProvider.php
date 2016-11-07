@@ -3,7 +3,9 @@ namespace DreamFactory\Core\Azure;
 
 use DreamFactory\Core\Azure\Components\AzureBlobConfig;
 use DreamFactory\Core\Azure\Models\AzureConfig;
+use DreamFactory\Core\Azure\Models\DocumentDbConfig;
 use DreamFactory\Core\Azure\Services\Blob;
+use DreamFactory\Core\Azure\Services\DocumentDB;
 use DreamFactory\Core\Azure\Services\Table;
 use DreamFactory\Core\Components\ServiceDocBuilder;
 use DreamFactory\Core\Enums\ServiceTypeGroups;
@@ -45,6 +47,21 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                     },
                     'factory'         => function ($config) {
                         return new Table($config);
+                    }
+                ])
+            );
+            $df->addType(
+                new ServiceType([
+                    'name'            => 'azure_documentdb',
+                    'label'           => 'Azure DocumentDB',
+                    'description'     => 'Database service supporting the Microsoft Azure DocumentDB.',
+                    'group'           => ServiceTypeGroups::DATABASE,
+                    'config_handler'  => DocumentDbConfig::class,
+                    'default_api_doc' => function ($service) {
+                        return $this->buildServiceDoc($service->id, Table::getApiDocInfo($service));
+                    },
+                    'factory'         => function ($config) {
+                        return new DocumentDB($config);
                     }
                 ])
             );
