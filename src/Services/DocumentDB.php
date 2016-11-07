@@ -93,7 +93,7 @@ class DocumentDB extends BaseNoSqlDbService
                 $tables[strtolower($table)] = new TableSchema(['name' => $table]);
             }
             // merge db extras
-            if (!empty($extrasEntries = $this->getSchemaExtrasForTables($collections, false))) {
+            if (!empty($extrasEntries = $this->getSchemaExtrasForTables($collections))) {
                 foreach ($extrasEntries as $extras) {
                     if (!empty($extraName = strtolower(strval($extras['table'])))) {
                         if (array_key_exists($extraName, $tables)) {
