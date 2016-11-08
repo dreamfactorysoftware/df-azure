@@ -7,14 +7,12 @@ use DreamFactory\Core\Utility\ResourcesWrapper;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Azure\Components\DocumentDBConnection as Conn;
 use DreamFactory\Core\Azure\Services\DocumentDB;
-use DreamFactory\Core\Database\Schema\Schema;
 use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\Enums\HttpStatusCodes;
 use DreamFactory\Core\Exceptions\NotFoundException;
 use DreamFactory\Core\Exceptions\RestException;
 use DreamFactory\Core\Resources\BaseNoSqlDbTableResource;
 use DreamFactory\Core\Exceptions\BadRequestException;
-use DreamFactory\Core\Utility\DataFormatter;
 use DreamFactory\Core\Enums\DbLogicalOperators;
 use DreamFactory\Core\Enums\DbComparisonOperators;
 use DreamFactory\Core\Exceptions\ForbiddenException;
@@ -479,11 +477,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
         // remove quoting on strings if used, i.e. 1.x required them
         if (is_string($value)) {
 
-            if ((0 === strcmp("'" . trim($value, "'") . "'", $value)) ||
-                (0 === strcmp('"' . trim($value, '"') . '"', $value))
-            ) {
-                $value = substr($value, 1, -1);
-            } elseif ((0 === strpos($value, '(')) && ((strlen($value) - 1) === strrpos($value, ')'))) {
+            if ((0 === strpos($value, '(')) && ((strlen($value) - 1) === strrpos($value, ')'))) {
                 // function call
                 return $value;
             }
@@ -495,43 +489,16 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
             // need to prop this up?
         }
 
-        switch ($cnvType = Schema::determinePhpConversionType($info->type)) {
-            case 'int':
-                if (!is_int($value)) {
-                    if (!(ctype_digit($value))) {
-                        throw new BadRequestException("Field '{$info->getName(true)}' must be a valid integer.");
-                    } else {
-                        $value = intval($value);
-                    }
-                }
-                break;
-
-            case 'time':
-                $cfgFormat = Config::get('df.db_time_format');
-                $outFormat = 'H:i:s.u';
-                $value = DataFormatter::formatDateTime($outFormat, $value, $cfgFormat);
-                break;
-            case 'date':
-                $cfgFormat = Config::get('df.db_date_format');
-                $outFormat = 'Y-m-d';
-                $value = DataFormatter::formatDateTime($outFormat, $value, $cfgFormat);
-                break;
-            case 'datetime':
-                $cfgFormat = Config::get('df.db_datetime_format');
-                $outFormat = 'Y-m-d H:i:s';
-                $value = DataFormatter::formatDateTime($outFormat, $value, $cfgFormat);
-                break;
-            case 'timestamp':
-                $cfgFormat = Config::get('df.db_timestamp_format');
-                $outFormat = 'Y-m-d H:i:s';
-                $value = DataFormatter::formatDateTime($outFormat, $value, $cfgFormat);
-                break;
-            case 'bool':
-                $value = Scalar::boolval(('false' === trim(strtolower($value))) ? 0 : $value);
-                break;
-
-            default:
-                break;
+        if (is_numeric($value)) {
+            $value = (int)$value;
+        } elseif ('true' === strtolower($value)) {
+            $value = true;
+        } elseif ('false' === strtolower($value)) {
+            $value = false;
+        } elseif ((0 === strcmp("'" . trim($value, "'") . "'", $value)) ||
+            (0 === strcmp('"' . trim($value, '"') . '"', $value))
+        ) {
+            $value = substr($value, 1, -1);
         }
 
         $key = '@' . $info->getName() . $this->i;
@@ -742,6 +709,75 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
     }
 
     /** {@inheritdoc} */
+    public function updateRecordsByFilter($table, $record, $filter = null, $params = [], $extras = [], $patch = false)
+    {
+        $record = static::validateAsArray($record, null, false, 'There are no fields in the record.');
+
+        $fields = array_get($extras, ApiOptions::FIELDS);
+        $idFields = array_get($extras, ApiOptions::ID_FIELD);
+        $idTypes = array_get($extras, ApiOptions::ID_TYPE);
+
+        // slow, but workable for now, maybe faster than merging individuals
+        $extras[ApiOptions::FIELDS] = ApiOptions::FIELDS_ALL;
+        $records = $this->retrieveRecordsByFilter($table, $filter, $params, $extras);
+        unset($records['meta']);
+
+        $fieldsInfo = $this->getFieldsInfo($table);
+        $idsInfo = $this->getIdsInfo($table, $fieldsInfo, $idFields, $idTypes);
+        if (empty($idsInfo)) {
+            throw new InternalServerErrorException("Identifying field(s) could not be determined.");
+        }
+
+        $ids = static::recordsAsIds($records, $idsInfo);
+        if (empty($ids)) {
+            return [];
+        }
+
+        $extras[ApiOptions::FIELDS] = $fields;
+
+        if (true === $patch) {
+            $newRecords = [];
+            foreach ($ids as $id) {
+                $record[static::ID_FIELD] = $id;
+                $newRecords[] = $record;
+            }
+            $newRecords = $this->mergeRecords($newRecords);
+
+            return $this->updateRecords($this->transactionTable, $newRecords, $extras);
+        } else {
+            return $this->updateRecordsByIds($table, $record, $ids, $extras);
+        }
+    }
+
+    /** {@inheritdoc} */
+    public function deleteRecordsByFilter($table, $filter, $params = [], $extras = [])
+    {
+        $fields = array_get($extras, ApiOptions::FIELDS);
+        $idFields = array_get($extras, ApiOptions::ID_FIELD);
+        $idTypes = array_get($extras, ApiOptions::ID_TYPE);
+
+        // slow, but workable for now, maybe faster than deleting individuals
+        $extras[ApiOptions::FIELDS] = static::ID_FIELD;
+        $records = $this->retrieveRecordsByFilter($table, $filter, $params, $extras);
+        unset($records['meta']);
+
+        $fieldsInfo = $this->getFieldsInfo($table);
+        $idsInfo = $this->getIdsInfo($table, $fieldsInfo, $idFields, $idTypes);
+        if (empty($idsInfo)) {
+            throw new InternalServerErrorException("Identifying field(s) could not be determined.");
+        }
+
+        $ids = static::recordsAsIds($records, $idsInfo, $extras);
+        if (empty($ids)) {
+            return [];
+        }
+
+        $extras[ApiOptions::FIELDS] = $fields;
+
+        return $this->deleteRecordsByIds($table, $ids, $extras);
+    }
+
+    /** {@inheritdoc} */
     public function deleteRecordsByIds($table, $ids, $extras = [])
     {
         $ids = static::validateAsArray($ids, ',', true, 'The request contains no valid identifiers.');
@@ -833,6 +869,97 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
     /** {@inheritdoc} */
     protected function handlePatch()
     {
-        return false;
+        if (empty($this->resource)) {
+            // not currently supported, maybe batch opportunity?
+            return false;
+        }
+
+        if (false === ($tableName = $this->doesTableExist($this->resource, true))) {
+            throw new NotFoundException('Table "' . $this->resource . '" does not exist in the database.');
+        }
+        $this->transactionTable = $tableName;
+
+        $options = $this->request->getParameters();
+
+        if (!empty($this->resourceId)) {
+            $record = $this->getPayloadData();
+            $record[static::ID_FIELD] = $this->resourceId;
+            $record = array_get($this->mergeRecords([$record]), 0);
+
+            return $this->updateRecordById($tableName, $record, $this->resourceId, $options);
+        }
+
+        $records = ResourcesWrapper::unwrapResources($this->getPayloadData());
+        if (empty($records)) {
+            throw new BadRequestException('No record(s) detected in request.');
+        }
+
+        $ids = array_get($options, ApiOptions::IDS);
+
+        if (!empty($ids)) {
+            $record = array_get($records, 0, $records);
+            $newRecords = [];
+            foreach (explode(',', $ids) as $id) {
+                $record[static::ID_FIELD] = $id;
+                $newRecords[] = $record;
+            }
+            $newRecords = $this->mergeRecords($newRecords);
+            $result = $this->updateRecords($tableName, $newRecords, $options);
+        } else {
+            $filter = array_get($options, ApiOptions::FILTER);
+            if (!empty($filter)) {
+                $record = array_get($records, 0, $records);
+                $params = array_get($options, ApiOptions::PARAMS, []);
+                $result = $this->updateRecordsByFilter(
+                    $tableName,
+                    $record,
+                    $filter,
+                    $params,
+                    $options,
+                    true
+                );
+            } else {
+                $records = $this->mergeRecords($records);
+                $result = $this->updateRecords($tableName, $records, $options);
+            }
+        }
+
+        $meta = array_get($result, 'meta');
+        unset($result['meta']);
+
+        $asList = $this->request->getParameterAsBool(ApiOptions::AS_LIST);
+        $idField = $this->request->getParameter(ApiOptions::ID_FIELD, static::getResourceIdentifier());
+        $result = ResourcesWrapper::cleanResources($result, $asList, $idField, ApiOptions::FIELDS_ALL, !empty($meta));
+
+        if (!empty($meta)) {
+            $result['meta'] = $meta;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Merges new record with existing record to perform PATCH operation
+     *
+     * @param array $records
+     *
+     * @return array
+     * @throws \DreamFactory\Core\Exceptions\InternalServerErrorException
+     */
+    protected function mergeRecords(array $records)
+    {
+        foreach ($records as $key => $record) {
+            if (null === $id = array_get($record, static::ID_FIELD)) {
+                throw new InternalServerErrorException('No ' .
+                    static::ID_FIELD .
+                    ' field found in supplied record(s). Cannot merge record(s) for PATCH operation.');
+            }
+
+            $rs = $this->parent->getConnection()->getDocument($this->transactionTable, $id);
+            $record = array_merge($rs, $record);
+            $records[$key] = $record;
+        }
+
+        return $records;
     }
 }

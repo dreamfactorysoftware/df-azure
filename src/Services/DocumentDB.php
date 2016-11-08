@@ -115,10 +115,4 @@ class DocumentDB extends BaseNoSqlDbService
         $this->removeFromCache('table_names');
         $this->tables = [];
     }
-
-    /** {@inheritdoc} */
-    protected function handlePATCH()
-    {
-        return false;
-    }
 }
