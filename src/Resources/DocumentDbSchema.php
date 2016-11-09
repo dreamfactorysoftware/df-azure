@@ -85,6 +85,9 @@ class DocumentDbSchema extends BaseNoSqlDbSchemaResource
             $this->refreshCachedTables();
             return ['name' => $table];
         } catch (\Exception $ex) {
+            if($ex->getCode() >= 400 && $ex->getCode() < 500){
+                throw $ex;
+            }
             throw new InternalServerErrorException("Failed to create table '$table'.\n{$ex->getMessage()}");
         }
     }

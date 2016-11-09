@@ -327,7 +327,8 @@ class DocumentDBConnection
         $message = array_get($response, 'message');
 
         if ($responseCode >= 400) {
-            throw new RestException($responseCode, $message);
+            $context = ['response_headers' => array_get($response, '_curl_info.response_headers')];
+            throw new RestException($responseCode, $message, null, null, $context);
         }
     }
 }
