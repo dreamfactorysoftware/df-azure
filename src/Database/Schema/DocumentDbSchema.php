@@ -98,18 +98,4 @@ class DocumentDbSchema extends Schema
     {
         // Do nothing here for now
     }
-
-    /**
-     * @inheritdoc
-     */
-    public function parseValueForSet($value, $field_info)
-    {
-        switch ($field_info->type) {
-            case DbSimpleTypes::TYPE_BOOLEAN:
-                $value = (filter_var($value, FILTER_VALIDATE_BOOLEAN) ? 1 : 0);
-                break;
-        }
-
-        return $value;
-    }
 }
