@@ -59,15 +59,23 @@ class AzureTableSchema extends Schema
     /**
      * @inheritdoc
      */
-    public function createTable($table, $schema, $options = null)
+    protected function createTable($table, $options)
     {
-        return $this->connection->createTable($table, $options);
+        if (empty($tableName = array_get($table, 'name'))) {
+            throw new \Exception("No valid name exist in the received table schema.");
+        }
+
+        if (!empty($native = array_get($table, 'native'))) {
+
+        }
+
+        return $this->connection->createTable($tableName);
     }
 
     /**
      * @inheritdoc
      */
-    protected function updateTable($table_name, $schema)
+    protected function updateTable($table, $changes)
     {
         // nothing to do here
     }

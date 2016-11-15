@@ -40,7 +40,7 @@ class DocumentDbSchema extends Schema
     {
         $tables = [];
         $collections = $this->connection->listCollections();
-        foreach ($collections as $collection){
+        foreach ($collections as $collection) {
             $tables[strtolower($collection)] = new TableSchema(['name' => $collection]);
         }
 
@@ -50,14 +50,20 @@ class DocumentDbSchema extends Schema
     /**
      * @inheritdoc
      */
-    public function createTable($table, $schema, $options = null)
+    public function createTable($table, $options)
     {
-        $data = ['id' => $table];
-        if(isset($options['indexingPolicy'])){
-            $data['indexingPolicy'] = $options['indexingPolicy'];
+        if (empty($tableName = array_get($table, 'name'))) {
+            throw new \Exception("No valid name exist in the received table schema.");
         }
-        if(isset($options['partitionKey'])){
-            $data['partitionKey'] = $options['partitionKey'];
+
+        $data = ['id' => $tableName];
+        if (!empty($native = array_get($table, 'native'))) {
+            if (isset($options['indexingPolicy'])) {
+                $data['indexingPolicy'] = $native['indexingPolicy'];
+            }
+            if (isset($options['partitionKey'])) {
+                $data['partitionKey'] = $native['partitionKey'];
+            }
         }
 
         return $this->connection->createCollection($data);
@@ -66,13 +72,20 @@ class DocumentDbSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function updateTable($table_name, $schema)
+    protected function updateTable($table, $changes)
     {
-        $data = ['id' => $table_name];
-        if(isset($schema['indexingPolicy'])){
-            $data['indexingPolicy'] = $schema['indexingPolicy'];
+        if (empty($tableName = array_get($table, 'name'))) {
+            throw new \Exception("No valid name exist in the received table schema.");
         }
-        $this->connection->replaceCollection($data, $table_name);
+
+        $data = ['id' => $tableName];
+        if (!empty($native = array_get($table, 'native'))) {
+            if (isset($native['indexingPolicy'])) {
+                $data['indexingPolicy'] = $native['indexingPolicy'];
+            }
+        }
+
+        $this->connection->replaceCollection($data, $table);
     }
 
     /**
