@@ -58,10 +58,10 @@ class DocumentDbSchema extends Schema
 
         $data = ['id' => $tableName];
         if (!empty($native = array_get($table, 'native'))) {
-            if (isset($options['indexingPolicy'])) {
+            if (isset($native['indexingPolicy'])) {
                 $data['indexingPolicy'] = $native['indexingPolicy'];
             }
-            if (isset($options['partitionKey'])) {
+            if (isset($native['partitionKey'])) {
                 $data['partitionKey'] = $native['partitionKey'];
             }
         }
