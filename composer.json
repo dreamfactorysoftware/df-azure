@@ -28,7 +28,7 @@
     "wiki":   "https://wiki.dreamfactory.com"
   },
   "require":      {
-    "dreamfactory/df-core":    "~0.5.0",
+    "dreamfactory/df-core":    "~0.6.0",
     "microsoft/azure-storage": "0.10.*",
     "dreamfactory/azure-documentdb-php-sdk": "~0.1.0"
   },
@@ -39,7 +39,7 @@
   },
   "extra":        {
     "branch-alias": {
-      "dev-develop": "0.5.x-dev"
+      "dev-develop": "0.6.x-dev"
     }
   }
 }

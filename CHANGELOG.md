@@ -4,10 +4,16 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+### Changed
+### Fixed
+
+## [0.6.0] - 2016-11-17
+### Added
 - DF-155 Adding Azure DocumentDB service type
 
 ### Changed
-### Fixed
+- DB base class changes to support field configuration across all database types.
+- Base create and update table methods to allow for native settings
 
 ## [0.5.0] - 2016-10-03
 ### Changed
@@ -34,12 +40,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Use new baseclass's trait instead of DBUtilities.
 
 ## [0.2.0] - 2016-01-29
-### Added
-
 ### Changed
 - **MAJOR** Updated code base to use OpenAPI (fka Swagger) Specification 2.0 from 1.2
-
-### Fixed
 
 ## [0.1.2] - 2015-12-21
 ### Fixed
@@ -52,7 +54,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## 0.1.0 - 2015-10-24
 First official release working with the new [df-core](https://github.com/dreamfactorysoftware/df-core) library.
 
-[Unreleased]: https://github.com/dreamfactorysoftware/df-azure/compare/0.5.0...HEAD
+[Unreleased]: https://github.com/dreamfactorysoftware/df-azure/compare/0.6.0...HEAD
+[0.6.0]: https://github.com/dreamfactorysoftware/df-azure/compare/0.5.0...0.6.0
 [0.5.0]: https://github.com/dreamfactorysoftware/df-azure/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/dreamfactorysoftware/df-azure/compare/0.3.1...0.4.0
 [0.3.1]: https://github.com/dreamfactorysoftware/df-azure/compare/0.3.0...0.3.1
