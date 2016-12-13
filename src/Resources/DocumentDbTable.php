@@ -2,6 +2,7 @@
 
 namespace DreamFactory\Core\Azure\Resources;
 
+use DreamFactory\Core\Azure\Components\DocumentDBConnection;
 use DreamFactory\Core\Exceptions\DfException;
 use DreamFactory\Core\Utility\ResourcesWrapper;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
@@ -11,7 +12,7 @@ use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\Enums\HttpStatusCodes;
 use DreamFactory\Core\Exceptions\NotFoundException;
 use DreamFactory\Core\Exceptions\RestException;
-use DreamFactory\Core\Resources\BaseNoSqlDbTableResource;
+use DreamFactory\Core\Database\Resources\BaseNoSqlDbTableResource;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Enums\DbLogicalOperators;
 use DreamFactory\Core\Enums\DbComparisonOperators;
@@ -35,6 +36,14 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
      * @var int An internal counter
      */
     private $i = 1;
+
+    /**
+     * @return DocumentDBConnection
+     */
+    protected function getConnection()
+    {
+        return $this->parent->getConnection();
+    }
 
     /** {@inheritdoc} */
     protected function getIdsInfo(
@@ -60,7 +69,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                     foreach ($this->rollbackRecords as $rr) {
                         $id = array_get($rr, static::ID_FIELD);
                         if (!empty($id)) {
-                            $this->parent->getConnection()->deleteDocument($this->transactionTable, $id);
+                            $this->getConnection()->deleteDocument($this->transactionTable, $id);
                         }
                     }
                     break;
@@ -70,7 +79,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                     foreach ($this->rollbackRecords as $rr) {
                         $id = array_get($rr, static::ID_FIELD);
                         if (!empty($id)) {
-                            $this->parent->getConnection()->replaceDocument($this->transactionTable, $rr, $id);
+                            $this->getConnection()->replaceDocument($this->transactionTable, $rr, $id);
                         }
                     }
                     break;
@@ -78,7 +87,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                     foreach ($this->rollbackRecords as $rr) {
                         $id = array_get($rr, static::ID_FIELD);
                         if (!empty($id)) {
-                            $this->parent->getConnection()->createDocument($this->transactionTable, $rr);
+                            $this->getConnection()->createDocument($this->transactionTable, $rr);
                         }
                     }
                     break;
@@ -108,7 +117,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
             case Verbs::POST:
                 $result = [];
                 foreach ($this->batchRecords as $record) {
-                    $result[] = $rs = $this->parent->getConnection()->createDocument($this->transactionTable, $record);
+                    $result[] = $rs = $this->getConnection()->createDocument($this->transactionTable, $record);
                     if ($rollback) {
                         static::addToRollback($rs);
                     }
@@ -137,7 +146,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                     if ($rollback) {
                         if (!empty($id)) {
                             try {
-                                $rs = $this->parent->getConnection()->getDocument($this->transactionTable, $id);
+                                $rs = $this->getConnection()->getDocument($this->transactionTable, $id);
                                 static::addToRollback($rs);
                             } catch (RestException $e) {
                                 if ($e->getStatusCode() !== HttpStatusCodes::HTTP_NOT_FOUND) {
@@ -149,7 +158,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
 
                     try {
                         $result[] =
-                            $this->parent->getConnection()->replaceDocument($this->transactionTable, $record, $id);
+                            $this->getConnection()->replaceDocument($this->transactionTable, $record, $id);
                     } catch (\Exception $e) {
                         if (false === $continue && false === $rollback) {
                             throw $e;
@@ -182,7 +191,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                 foreach ($this->batchIds as $id) {
                     if ($rollback) {
                         try {
-                            $rs = $this->parent->getConnection()->getDocument($this->transactionTable, $id);
+                            $rs = $this->getConnection()->getDocument($this->transactionTable, $id);
                             static::addToRollback($rs);
                         } catch (RestException $e) {
                             if ($e->getStatusCode() !== HttpStatusCodes::HTTP_NOT_FOUND) {
@@ -192,7 +201,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                     }
 
                     try {
-                        $this->parent->getConnection()->deleteDocument($this->transactionTable, $id);
+                        $this->getConnection()->deleteDocument($this->transactionTable, $id);
                         $result[] = ['id' => $id];
                     } catch (\Exception $e) {
                         if (false === $continue && false === $rollback) {
@@ -225,7 +234,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                 $errors = [];
                 foreach ($this->batchIds as $id) {
                     try {
-                        $result[] = $this->parent->getConnection()->getDocument($this->transactionTable, $id);
+                        $result[] = $this->getConnection()->getDocument($this->transactionTable, $id);
                     } catch (RestException $e) {
                         if ($e->getStatusCode() == HttpStatusCodes::HTTP_NOT_FOUND && count($this->batchIds) > 1) {
                             $result[] = "Record with identifier '" . $id . "' not found.";
@@ -267,9 +276,9 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
             if (!empty($orderBy)) {
                 $sql = "SELECT * FROM " . $table . ' ORDER BY ' . $orderBy;
                 $result =
-                    $this->parent->getConnection()->queryDocument($table, $sql, $params, [Conn::OPT_LIMIT => $limit]);
+                    $this->getConnection()->queryDocument($table, $sql, $params, [Conn::OPT_LIMIT => $limit]);
             } else {
-                $result = $this->parent->getConnection()->listDocuments($table, [Conn::OPT_LIMIT => $limit]);
+                $result = $this->getConnection()->listDocuments($table, [Conn::OPT_LIMIT => $limit]);
             }
             $docs = array_get($result, 'Documents');
             $out = static::cleanRecords($docs, $fields, static::ID_FIELD);
@@ -288,7 +297,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
             if (!empty($orderBy)) {
                 $sql .= ' ORDER BY ' . $orderBy;
             }
-            $result = $this->parent->getConnection()->queryDocument($table, $sql, $params, [Conn::OPT_LIMIT => $limit]);
+            $result = $this->getConnection()->queryDocument($table, $sql, $params, [Conn::OPT_LIMIT => $limit]);
             $out = array_get($result, 'Documents');
         }
 
@@ -955,7 +964,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                     ' field found in supplied record(s). Cannot merge record(s) for PATCH operation.');
             }
 
-            $rs = $this->parent->getConnection()->getDocument($this->transactionTable, $id);
+            $rs = $this->getConnection()->getDocument($this->transactionTable, $id);
             $record = array_merge($rs, $record);
             $records[$key] = $record;
         }

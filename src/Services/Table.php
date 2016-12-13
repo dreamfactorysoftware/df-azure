@@ -4,8 +4,8 @@ namespace DreamFactory\Core\Azure\Services;
 use DreamFactory\Core\Azure\Database\Schema\AzureTableSchema;
 use DreamFactory\Core\Azure\Resources\Table as TableResource;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use DreamFactory\Core\Resources\DbSchemaResource;
-use DreamFactory\Core\Services\BaseDbService;
+use DreamFactory\Core\Database\Resources\DbSchemaResource;
+use DreamFactory\Core\Database\Services\BaseDbService;
 use DreamFactory\Core\Utility\Session;
 use MicrosoftAzure\Storage\Common\ServicesBuilder;
 

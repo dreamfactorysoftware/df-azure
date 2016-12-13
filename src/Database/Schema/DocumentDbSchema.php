@@ -1,9 +1,8 @@
 <?php
 namespace DreamFactory\Core\Azure\Database\Schema;
 
-use DreamFactory\Core\Database\Schema\Schema;
+use DreamFactory\Core\Database\Components\Schema;
 use DreamFactory\Core\Database\Schema\TableSchema;
-use DreamFactory\Core\Enums\DbSimpleTypes;
 
 /**
  * Schema is the class for retrieving metadata information from a MongoDB database (version 4.1.x and 5.x).
@@ -36,12 +35,14 @@ class DocumentDbSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function findTableNames($schema = '', $include_views = true)
+    protected function findTableNames($schema = '')
     {
         $tables = [];
         $collections = $this->connection->listCollections();
-        foreach ($collections as $collection) {
-            $tables[strtolower($collection)] = new TableSchema(['name' => $collection]);
+        foreach ($collections as $name) {
+            $internalName = $quotedName = $tableName = $name;
+            $settings = compact('tableName', 'name', 'internalName','quotedName');
+            $tables[strtolower($name)] = new TableSchema($settings);
         }
 
         return $tables;

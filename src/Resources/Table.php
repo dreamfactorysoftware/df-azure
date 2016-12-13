@@ -3,7 +3,8 @@ namespace DreamFactory\Core\Azure\Resources;
 
 use DreamFactory\Core\Database\Schema\ColumnSchema;
 use DreamFactory\Core\Enums\ApiOptions;
-use DreamFactory\Core\Resources\BaseNoSqlDbTableResource;
+use DreamFactory\Core\Database\Resources\BaseNoSqlDbTableResource;
+use DreamFactory\Core\Enums\DbSimpleTypes;
 use DreamFactory\Core\Utility\Session;
 use DreamFactory\Library\Utility\Enums\Verbs;
 use DreamFactory\Core\Exceptions\BadRequestException;
@@ -22,6 +23,7 @@ use MicrosoftAzure\Storage\Table\Models\Property;
 use MicrosoftAzure\Storage\Table\Models\QueryEntitiesOptions;
 use MicrosoftAzure\Storage\Table\Models\QueryEntitiesResult;
 use MicrosoftAzure\Storage\Table\Models\UpdateEntityResult;
+use MicrosoftAzure\Storage\Table\TableRestProxy;
 
 class Table extends BaseNoSqlDbTableResource
 {
@@ -72,6 +74,14 @@ class Table extends BaseNoSqlDbTableResource
     }
 
     /**
+     * @return TableRestProxy
+     */
+    protected function getConnection()
+    {
+        return $this->parent->getConnection();
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function updateRecordsByFilter($table, $record, $filter = null, $params = [], $extras = [])
@@ -87,7 +97,7 @@ class Table extends BaseNoSqlDbTableResource
             $entities = $this->queryEntities($table, $filter, $fields, $extras);
             foreach ($entities as $entity) {
                 $entity = static::parseRecordToEntity($record, $entity);
-                $this->parent->getConnection()->updateEntity($table, $entity);
+                $this->getConnection()->updateEntity($table, $entity);
             }
 
             $out = static::parseEntitiesToRecords($entities, $fields);
@@ -114,7 +124,7 @@ class Table extends BaseNoSqlDbTableResource
             $entities = $this->queryEntities($table, $filter, $fields, $extras);
             foreach ($entities as $entity) {
                 $entity = static::parseRecordToEntity($record, $entity);
-                $this->parent->getConnection()->mergeEntity($table, $entity);
+                $this->getConnection()->mergeEntity($table, $entity);
             }
 
             $out = static::parseEntitiesToRecords($entities, $fields);
@@ -152,7 +162,7 @@ class Table extends BaseNoSqlDbTableResource
             foreach ($entities as $entity) {
                 $partitionKey = $entity->getPartitionKey();
                 $rowKey = $entity->getRowKey();
-                $this->parent->getConnection()->deleteEntity($table, $partitionKey, $rowKey);
+                $this->getConnection()->deleteEntity($table, $partitionKey, $rowKey);
             }
 
             $out = static::parseEntitiesToRecords($entities, $fields);
@@ -247,7 +257,7 @@ class Table extends BaseNoSqlDbTableResource
 
         try {
             /** @var QueryEntitiesResult $result */
-            $result = $this->parent->getConnection()->queryEntities($table, $options);
+            $result = $this->getConnection()->queryEntities($table, $options);
 
             /** @var Entity[] $entities */
             $entities = $result->getEntities();
@@ -717,7 +727,7 @@ class Table extends BaseNoSqlDbTableResource
                 }
 
                 /** @var InsertEntityResult $result */
-                $result = $this->parent->getConnection()->insertEntity($this->transactionTable, $entity);
+                $result = $this->getConnection()->insertEntity($this->transactionTable, $entity);
 
                 if ($rollback) {
                     $this->addToRollback($entity);
@@ -737,7 +747,7 @@ class Table extends BaseNoSqlDbTableResource
                 }
 
                 if ($rollback) {
-                    $old = $this->parent->getConnection()->getEntity(
+                    $old = $this->getConnection()->getEntity(
                         $this->transactionTable,
                         $entity->getRowKey(),
                         $entity->getPartitionKey()
@@ -746,7 +756,7 @@ class Table extends BaseNoSqlDbTableResource
                 }
 
                 /** @var UpdateEntityResult $result */
-                $this->parent->getConnection()->updateEntity($this->transactionTable, $entity);
+                $this->getConnection()->updateEntity($this->transactionTable, $entity);
 
                 $out = static::parseEntityToRecord($entity, $fields);
                 break;
@@ -763,7 +773,7 @@ class Table extends BaseNoSqlDbTableResource
                 }
 
                 if ($rollback || $requireMore) {
-                    $old = $this->parent->getConnection()->getEntity($this->transactionTable, $rowKey, $partKey);
+                    $old = $this->getConnection()->getEntity($this->transactionTable, $rowKey, $partKey);
                     if ($rollback) {
                         $this->addToRollback($old);
                     }
@@ -778,7 +788,7 @@ class Table extends BaseNoSqlDbTableResource
                 $out = (empty($out)) ? static::parseEntityToRecord($entity, $fields) : $out;
 
                 /** @var UpdateEntityResult $result */
-                $this->parent->getConnection()->mergeEntity($this->transactionTable, $entity);
+                $this->getConnection()->mergeEntity($this->transactionTable, $entity);
                 break;
             case Verbs::DELETE:
                 if ($batch) {
@@ -792,7 +802,7 @@ class Table extends BaseNoSqlDbTableResource
                 }
 
                 if ($rollback || $requireMore) {
-                    $old = $this->parent->getConnection()->getEntity($this->transactionTable, $partKey, $rowKey);
+                    $old = $this->getConnection()->getEntity($this->transactionTable, $partKey, $rowKey);
                     if ($rollback) {
                         $this->addToRollback($old);
                     }
@@ -801,7 +811,7 @@ class Table extends BaseNoSqlDbTableResource
                     }
                 }
 
-                $this->parent->getConnection()->deleteEntity($this->transactionTable, $partKey, $rowKey);
+                $this->getConnection()->deleteEntity($this->transactionTable, $partKey, $rowKey);
 
                 $out = (empty($out)) ? static::parseEntityToRecord($entity, $fields) : $out;
                 break;
@@ -812,7 +822,7 @@ class Table extends BaseNoSqlDbTableResource
                 }
 
                 /** @var GetEntityResult $result */
-                $result = $this->parent->getConnection()->getEntity($this->transactionTable, $partKey, $rowKey);
+                $result = $this->getConnection()->getEntity($this->transactionTable, $partKey, $rowKey);
 
                 $out = static::parseEntityToRecord($result->getEntity(), $fields);
                 break;
@@ -839,7 +849,7 @@ class Table extends BaseNoSqlDbTableResource
             case Verbs::PUT:
                 if (isset($this->batchOps)) {
                     /** @var BatchResult $result */
-                    $this->parent->getConnection()->batch($this->batchOps);
+                    $this->getConnection()->batch($this->batchOps);
                 }
                 if (!empty($this->batchRecords)) {
                     $out = static::parseEntitiesToRecords($this->batchRecords, $fields);
@@ -850,7 +860,7 @@ class Table extends BaseNoSqlDbTableResource
             case Verbs::PATCH:
                 if (isset($this->batchOps)) {
                     /** @var BatchResult $result */
-                    $this->parent->getConnection()->batch($this->batchOps);
+                    $this->getConnection()->batch($this->batchOps);
                 }
                 if (!empty($this->batchIds)) {
                     $filters = static::buildIdsFilter($this->batchIds, $partitionKey);
@@ -871,7 +881,7 @@ class Table extends BaseNoSqlDbTableResource
                 }
                 if (isset($this->batchOps)) {
                     /** @var BatchResult $result */
-                    $this->parent->getConnection()->batch($this->batchOps);
+                    $this->getConnection()->batch($this->batchOps);
                 }
                 break;
 
@@ -939,7 +949,7 @@ class Table extends BaseNoSqlDbTableResource
                 case Verbs::MERGE:
                 case Verbs::DELETE:
                     /** @var BatchResult $result */
-                    $this->parent->getConnection()->batch($this->backupOps);
+                    $this->getConnection()->batch($this->backupOps);
                     break;
 
                 default:
