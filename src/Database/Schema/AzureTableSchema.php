@@ -49,9 +49,7 @@ class AzureTableSchema extends Schema
         $result = $this->connection->queryTables();
         $names = $result->getTables();
         foreach ($names as $name) {
-            $internalName = $quotedName = $tableName = $name;
-            $settings = compact('tableName', 'name', 'internalName','quotedName');
-            $tables[strtolower($name)] = new TableSchema($settings);
+            $tables[strtolower($name)] = new TableSchema(['name' => $name]);
         }
 
         return $tables;

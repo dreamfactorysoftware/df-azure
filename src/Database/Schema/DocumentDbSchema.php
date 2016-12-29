@@ -40,9 +40,7 @@ class DocumentDbSchema extends Schema
         $tables = [];
         $collections = $this->connection->listCollections();
         foreach ($collections as $name) {
-            $internalName = $quotedName = $tableName = $name;
-            $settings = compact('tableName', 'name', 'internalName','quotedName');
-            $tables[strtolower($name)] = new TableSchema($settings);
+            $tables[strtolower($name)] = new TableSchema(['name' => $name]);
         }
 
         return $tables;
