@@ -75,7 +75,6 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                     break;
                 case Verbs::PUT:
                 case Verbs::PATCH:
-                case Verbs::MERGE:
                     foreach ($this->rollbackRecords as $rr) {
                         $id = array_get($rr, static::ID_FIELD);
                         if (!empty($id)) {
@@ -127,7 +126,6 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                 break;
 
             case Verbs::PUT:
-            case Verbs::MERGE:
             case Verbs::PATCH:
                 $result = [];
                 $errors = [];

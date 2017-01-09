@@ -685,7 +685,6 @@ class Table extends BaseNoSqlDbTableResource
             $forUpdate = false;
             switch ($this->getAction()) {
                 case Verbs::PUT:
-                case Verbs::MERGE:
                 case Verbs::PATCH:
                     $forUpdate = true;
                     break;
@@ -760,7 +759,6 @@ class Table extends BaseNoSqlDbTableResource
 
                 $out = static::parseEntityToRecord($entity, $fields);
                 break;
-            case Verbs::MERGE:
             case Verbs::PATCH:
                 if ($batch) {
                     if (!isset($this->batchOps)) {
@@ -856,7 +854,6 @@ class Table extends BaseNoSqlDbTableResource
                 }
                 break;
 
-            case Verbs::MERGE:
             case Verbs::PATCH:
                 if (isset($this->batchOps)) {
                     /** @var BatchResult $result */
@@ -923,7 +920,6 @@ class Table extends BaseNoSqlDbTableResource
                 break;
 
             case Verbs::PUT:
-            case Verbs::MERGE:
             case Verbs::PATCH:
             case Verbs::DELETE:
                 $this->batchOps->addUpdateEntity($this->transactionTable, $record);
@@ -946,7 +942,6 @@ class Table extends BaseNoSqlDbTableResource
                 case Verbs::POST:
                 case Verbs::PUT:
                 case Verbs::PATCH:
-                case Verbs::MERGE:
                 case Verbs::DELETE:
                     /** @var BatchResult $result */
                     $this->getConnection()->batch($this->backupOps);
