@@ -71,20 +71,16 @@ class DocumentDbSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function updateTable($table, $changes)
+    protected function updateTable($tableSchema, $changes)
     {
-        if (empty($tableName = array_get($table, 'name'))) {
-            throw new \Exception("No valid name exist in the received table schema.");
-        }
-
-        $data = ['id' => $tableName];
-        if (!empty($native = array_get($table, 'native'))) {
+        $data = ['id' => $tableSchema->quotedName];
+        if (!empty($native = array_get($changes, 'native'))) {
             if (isset($native['indexingPolicy'])) {
                 $data['indexingPolicy'] = $native['indexingPolicy'];
             }
         }
 
-        $this->connection->replaceCollection($data, $table);
+        $this->connection->replaceCollection($data, $tableSchema->quotedName);
     }
 
     /**

@@ -74,7 +74,7 @@ class AzureTableSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function updateTable($table, $changes)
+    protected function updateTable($tableSchema, $changes)
     {
         // nothing to do here
     }
