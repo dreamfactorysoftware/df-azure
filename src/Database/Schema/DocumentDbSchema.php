@@ -1,9 +1,8 @@
 <?php
 namespace DreamFactory\Core\Azure\Database\Schema;
 
-use DreamFactory\Core\Database\Schema\Schema;
+use DreamFactory\Core\Database\Components\Schema;
 use DreamFactory\Core\Database\Schema\TableSchema;
-use DreamFactory\Core\Enums\DbSimpleTypes;
 
 /**
  * Schema is the class for retrieving metadata information from a MongoDB database (version 4.1.x and 5.x).
@@ -36,12 +35,12 @@ class DocumentDbSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function findTableNames($schema = '', $include_views = true)
+    protected function findTableNames($schema = '')
     {
         $tables = [];
         $collections = $this->connection->listCollections();
-        foreach ($collections as $collection) {
-            $tables[strtolower($collection)] = new TableSchema(['name' => $collection]);
+        foreach ($collections as $name) {
+            $tables[strtolower($name)] = new TableSchema(['name' => $name]);
         }
 
         return $tables;
@@ -72,20 +71,16 @@ class DocumentDbSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function updateTable($table, $changes)
+    protected function updateTable($tableSchema, $changes)
     {
-        if (empty($tableName = array_get($table, 'name'))) {
-            throw new \Exception("No valid name exist in the received table schema.");
-        }
-
-        $data = ['id' => $tableName];
-        if (!empty($native = array_get($table, 'native'))) {
+        $data = ['id' => $tableSchema->quotedName];
+        if (!empty($native = array_get($changes, 'native'))) {
             if (isset($native['indexingPolicy'])) {
                 $data['indexingPolicy'] = $native['indexingPolicy'];
             }
         }
 
-        $this->connection->replaceCollection($data, $table);
+        $this->connection->replaceCollection($data, $tableSchema->quotedName);
     }
 
     /**

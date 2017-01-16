@@ -1,9 +1,8 @@
 <?php
 namespace DreamFactory\Core\Azure\Database\Schema;
 
-use DreamFactory\Core\Database\Schema\Schema;
+use DreamFactory\Core\Database\Components\Schema;
 use DreamFactory\Core\Database\Schema\TableSchema;
-use DreamFactory\Core\Enums\DbSimpleTypes;
 use MicrosoftAzure\Storage\Table\Models\QueryTablesResult;
 use MicrosoftAzure\Storage\Table\TableRestProxy;
 
@@ -43,7 +42,7 @@ class AzureTableSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function findTableNames($schema = '', $include_views = true)
+    protected function findTableNames($schema = '')
     {
         $tables = [];
         /** @var QueryTablesResult $result */
@@ -75,7 +74,7 @@ class AzureTableSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function updateTable($table, $changes)
+    protected function updateTable($tableSchema, $changes)
     {
         // nothing to do here
     }

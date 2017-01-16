@@ -5,8 +5,8 @@ namespace DreamFactory\Core\Azure\Services;
 use DreamFactory\Core\Azure\Components\DocumentDBConnection;
 use DreamFactory\Core\Azure\Database\Schema\DocumentDbSchema;
 use DreamFactory\Core\Azure\Resources\DocumentDbTable;
-use DreamFactory\Core\Resources\DbSchemaResource;
-use DreamFactory\Core\Services\BaseDbService;
+use DreamFactory\Core\Database\Resources\DbSchemaResource;
+use DreamFactory\Core\Database\Services\BaseDbService;
 use DreamFactory\Core\Utility\Session;
 
 class DocumentDB extends BaseDbService
