@@ -886,7 +886,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
 
         $records = ResourcesWrapper::unwrapResources($this->getPayloadData());
         if (empty($records)) {
-            throw new BadRequestException('No record(s) detected in request.');
+            throw new BadRequestException('No record(s) detected in request.' . ResourcesWrapper::getWrapperMsg());
         }
 
         $ids = array_get($options, ApiOptions::IDS);

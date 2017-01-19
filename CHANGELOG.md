@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 ### Changed
+- DF-967 Made the error message 'No record(s) detected in request.' more verbose.
+
 ### Fixed
 
 ## [0.7.0] - 2017-01-16
