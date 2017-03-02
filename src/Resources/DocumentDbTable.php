@@ -51,7 +51,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
         $fields_info = null,
         &$requested_fields = null,
         $requested_types = null
-    ){
+    ) {
         $requested_fields = [static::ID_FIELD]; // can only be this
         $ids = [
             new ColumnSchema(['name' => static::ID_FIELD, 'type' => 'string', 'required' => false]),
@@ -177,7 +177,8 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
 
                 if (!empty($errors)) {
                     $context = ['error' => $errors, ResourcesWrapper::getWrapper() => $result];
-                    throw new BadRequestException('Batch Error: Not all requested records could be updated.', null, null, $context);
+                    throw new BadRequestException('Batch Error: Not all requested records could be updated.', null,
+                        null, $context);
                 }
 
                 $out = static::cleanRecords($result, static::ID_FIELD);
@@ -221,7 +222,8 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
 
                 if (!empty($errors)) {
                     $context = ['error' => $errors, ResourcesWrapper::getWrapper() => $result];
-                    throw new BadRequestException('Batch Error: Not all requested records could be deleted.', null, null, $context);
+                    throw new BadRequestException('Batch Error: Not all requested records could be deleted.', null,
+                        null, $context);
                 }
 
                 $out = static::cleanRecords($result, $fields, static::ID_FIELD);
@@ -245,7 +247,8 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
 
                 if (!empty($errors)) {
                     $context = ['error' => $errors, ResourcesWrapper::getWrapper() => $result];
-                    throw new NotFoundException('Batch Error: Not all requested records could be retrieved.', null, null,
+                    throw new NotFoundException('Batch Error: Not all requested records could be retrieved.', null,
+                        null,
                         $context);
                 }
 
