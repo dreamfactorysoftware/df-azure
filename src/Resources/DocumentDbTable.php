@@ -51,7 +51,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
         $fields_info = null,
         &$requested_fields = null,
         $requested_types = null
-    ){
+    ) {
         $requested_fields = [static::ID_FIELD]; // can only be this
         $ids = [
             new ColumnSchema(['name' => static::ID_FIELD, 'type' => 'string', 'required' => false]),
@@ -167,7 +167,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                             if (true === $rollback) {
                                 if ($e instanceof DfException) {
                                     $e->setContext(['error' => $errors, ResourcesWrapper::getWrapper() => $result]);
-                                    $e->setMessage('Batch Error: Not all records were updated.');
+                                    $e->setMessage('Batch Error: Not all requested records could be updated.');
                                 }
                                 throw $e;
                             }
@@ -177,7 +177,8 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
 
                 if (!empty($errors)) {
                     $context = ['error' => $errors, ResourcesWrapper::getWrapper() => $result];
-                    throw new BadRequestException('Batch Error: Not all records were updated.', null, null, $context);
+                    throw new BadRequestException('Batch Error: Not all requested records could be updated.', null,
+                        null, $context);
                 }
 
                 $out = static::cleanRecords($result, static::ID_FIELD);
@@ -211,7 +212,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                             if (true === $rollback) {
                                 if ($e instanceof DfException) {
                                     $e->setContext(['error' => $errors, ResourcesWrapper::getWrapper() => $result]);
-                                    $e->setMessage('Batch Error: Not all records were deleted.');
+                                    $e->setMessage('Batch Error: Not all requested records could be deleted.');
                                 }
                                 throw $e;
                             }
@@ -221,7 +222,8 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
 
                 if (!empty($errors)) {
                     $context = ['error' => $errors, ResourcesWrapper::getWrapper() => $result];
-                    throw new BadRequestException('Batch Error: Not all records were deleted.', null, null, $context);
+                    throw new BadRequestException('Batch Error: Not all requested records could be deleted.', null,
+                        null, $context);
                 }
 
                 $out = static::cleanRecords($result, $fields, static::ID_FIELD);
@@ -245,7 +247,8 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
 
                 if (!empty($errors)) {
                     $context = ['error' => $errors, ResourcesWrapper::getWrapper() => $result];
-                    throw new NotFoundException('Batch Error: Not all records could be retrieved.', null, null,
+                    throw new NotFoundException('Batch Error: Not all requested records could be retrieved.', null,
+                        null,
                         $context);
                 }
 
@@ -593,7 +596,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
             if (!empty($errors)) {
                 $wrapper = ResourcesWrapper::getWrapper();
                 $context = ['error' => $errors, $wrapper => $out];
-                $msg = 'Batch Error: Not all records could be updated.';
+                $msg = 'Batch Error: Not all requested records could be updated.';
             }
 
             if ($rollback) {
@@ -685,7 +688,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
             if (!empty($errors)) {
                 $wrapper = ResourcesWrapper::getWrapper();
                 $context = ['error' => $errors, $wrapper => $out];
-                $msg = 'Batch Error: Not all records could be updated.';
+                $msg = 'Batch Error: Not all requested records could be updated.';
             }
 
             if ($rollback) {
@@ -842,7 +845,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
             if (!empty($errors)) {
                 $wrapper = ResourcesWrapper::getWrapper();
                 $context = ['error' => $errors, $wrapper => $out];
-                $msg = 'Batch Error: Not all records could be deleted.';
+                $msg = 'Batch Error: Not all requested records could be deleted.';
             }
 
             if ($rollback) {
@@ -886,7 +889,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
 
         $records = ResourcesWrapper::unwrapResources($this->getPayloadData());
         if (empty($records)) {
-            throw new BadRequestException('No record(s) detected in request.');
+            throw new BadRequestException('No record(s) detected in request.' . ResourcesWrapper::getWrapperMsg());
         }
 
         $ids = array_get($options, ApiOptions::IDS);

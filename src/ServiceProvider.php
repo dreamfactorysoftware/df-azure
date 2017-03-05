@@ -58,7 +58,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                     'group'           => ServiceTypeGroups::DATABASE,
                     'config_handler'  => DocumentDbConfig::class,
                     'default_api_doc' => function ($service) {
-                        return $this->buildServiceDoc($service->id, Table::getApiDocInfo($service));
+                        return $this->buildServiceDoc($service->id, DocumentDB::getApiDocInfo($service));
                     },
                     'factory'         => function ($config) {
                         return new DocumentDB($config);
@@ -66,5 +66,11 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                 ])
             );
         });
+    }
+
+    public function boot()
+    {
+        // add migrations
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
     }
 }
