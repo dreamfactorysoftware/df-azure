@@ -3,7 +3,7 @@ namespace DreamFactory\Core\Azure\Components;
 
 use DreamFactory\Core\Azure\Models\AzureConfig;
 use DreamFactory\Core\Contracts\ServiceConfigHandlerInterface;
-use DreamFactory\Core\Models\FilePublicPath;
+use DreamFactory\Core\File\Models\FilePublicPath;
 use DreamFactory\Library\Utility\ArrayUtils;
 
 class AzureBlobConfig implements ServiceConfigHandlerInterface
