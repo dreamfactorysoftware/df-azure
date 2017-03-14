@@ -10,6 +10,7 @@ use DreamFactory\Library\Utility\Enums\Verbs;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Azure\Services\Table as TableService;
+use DreamFactory\Library\Utility\Scalar;
 use MicrosoftAzure\Storage\Common\ServiceException;
 use MicrosoftAzure\Storage\Table\Models\BatchError;
 use MicrosoftAzure\Storage\Table\Models\BatchOperations;
@@ -719,27 +720,38 @@ class Table extends BaseNoSqlDbTableResource
                     if (!isset($this->batchOps)) {
                         $this->batchOps = new BatchOperations();
                     }
-                    $this->batchOps->addInsertEntity($this->transactionTable, $entity);
+                    if (Scalar::boolval(array_get($extras, ApiOptions::UPSERT))) {
+                        $this->batchOps->addInsertOrReplaceEntity($this->transactionTable, $entity);
+                    } else {
+                        $this->batchOps->addInsertEntity($this->transactionTable, $entity);
+                    }
 
                     // track record for output
                     return parent::addToTransaction($record);
                 }
 
-                /** @var InsertEntityResult $result */
-                $result = $this->getConnection()->insertEntity($this->transactionTable, $entity);
+                if (Scalar::boolval(array_get($extras, ApiOptions::UPSERT))) {
+                    $this->getConnection()->insertOrReplaceEntity($this->transactionTable, $entity);
+                } else {
+                    $this->getConnection()->insertEntity($this->transactionTable, $entity);
+                }
 
                 if ($rollback) {
                     $this->addToRollback($entity);
                 }
 
-                $out = static::parseEntityToRecord($result->getEntity(), $fields);
+                $out = static::parseEntityToRecord($entity, $fields);
                 break;
             case Verbs::PUT:
                 if ($batch) {
                     if (!isset($this->batchOps)) {
                         $this->batchOps = new BatchOperations();
                     }
-                    $this->batchOps->addUpdateEntity($this->transactionTable, $entity);
+                    if (Scalar::boolval(array_get($extras, ApiOptions::UPSERT))) {
+                        $this->batchOps->addInsertOrReplaceEntity($this->transactionTable, $entity);
+                    } else {
+                        $this->batchOps->addUpdateEntity($this->transactionTable, $entity);
+                    }
 
                     // track record for output
                     return parent::addToTransaction($record);
@@ -754,8 +766,11 @@ class Table extends BaseNoSqlDbTableResource
                     $this->addToRollback($old);
                 }
 
-                /** @var UpdateEntityResult $result */
-                $this->getConnection()->updateEntity($this->transactionTable, $entity);
+                if (Scalar::boolval(array_get($extras, ApiOptions::UPSERT))) {
+                    $this->getConnection()->insertOrReplaceEntity($this->transactionTable, $entity);
+                } else {
+                    $this->getConnection()->updateEntity($this->transactionTable, $entity);
+                }
 
                 $out = static::parseEntityToRecord($entity, $fields);
                 break;
