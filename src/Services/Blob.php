@@ -1,7 +1,7 @@
 <?php
 namespace DreamFactory\Core\Azure\Services;
 
-use DreamFactory\Core\Services\RemoteFileService;
+use DreamFactory\Core\File\Services\RemoteFileService;
 use DreamFactory\Core\Azure\Components\AzureBlobFileSystem;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 
