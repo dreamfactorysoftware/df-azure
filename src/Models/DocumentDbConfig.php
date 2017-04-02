@@ -2,11 +2,13 @@
 
 namespace DreamFactory\Core\Azure\Models;
 
+use DreamFactory\Core\Database\Components\SupportsUpsert;
 use DreamFactory\Core\Models\BaseServiceConfigModel;
-use DreamFactory\Core\Exceptions\BadRequestException;
 
 class DocumentDbConfig extends BaseServiceConfigModel
 {
+    use SupportsUpsert;
+
     /** @var string  */
     protected $table = 'documentdb_config';
 
@@ -19,23 +21,11 @@ class DocumentDbConfig extends BaseServiceConfigModel
     /** @var array  */
     protected $protected = ['key'];
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function validateConfig($config, $create = true)
-    {
-        $validator = static::makeValidator($config, [
+    /** @var array  */
+    protected $rules = [
             'uri' => 'required',
             'key' => 'required'
-        ], $create);
-
-        if ($validator->fails()) {
-            $messages = $validator->messages()->getMessages();
-            throw new BadRequestException('Validation failed.', null, null, $messages);
-        }
-
-        return true;
-    }
+    ];
 
     /**
      * @param array $schema
