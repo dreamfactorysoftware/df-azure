@@ -10,7 +10,6 @@ use DreamFactory\Library\Utility\Enums\Verbs;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Azure\Services\Table as TableService;
-use DreamFactory\Library\Utility\Scalar;
 use MicrosoftAzure\Storage\Common\ServiceException;
 use MicrosoftAzure\Storage\Table\Models\BatchError;
 use MicrosoftAzure\Storage\Table\Models\BatchOperations;
@@ -235,7 +234,7 @@ class Table extends BaseNoSqlDbTableResource
         $fields = null,
         $extras = [],
         $parse_results = false
-    ){
+    ) {
         $options = new QueryEntitiesOptions();
         $options->setSelectFields([]);
 
@@ -655,7 +654,7 @@ class Table extends BaseNoSqlDbTableResource
         $rollback = false,
         $continue = false,
         $single = false
-    ){
+    ) {
         $ssFilters = array_get($extras, 'ss_filters');
         $fields = array_get($extras, ApiOptions::FIELDS);
         $requireMore = array_get($extras, 'require_more');
@@ -720,21 +719,13 @@ class Table extends BaseNoSqlDbTableResource
                     if (!isset($this->batchOps)) {
                         $this->batchOps = new BatchOperations();
                     }
-                    if (Scalar::boolval(array_get($extras, ApiOptions::UPSERT))) {
-                        $this->batchOps->addInsertOrReplaceEntity($this->transactionTable, $entity);
-                    } else {
-                        $this->batchOps->addInsertEntity($this->transactionTable, $entity);
-                    }
+                    $this->batchOps->addInsertEntity($this->transactionTable, $entity);
 
                     // track record for output
                     return parent::addToTransaction($record);
                 }
 
-                if (Scalar::boolval(array_get($extras, ApiOptions::UPSERT))) {
-                    $this->getConnection()->insertOrReplaceEntity($this->transactionTable, $entity);
-                } else {
-                    $this->getConnection()->insertEntity($this->transactionTable, $entity);
-                }
+                $this->getConnection()->insertEntity($this->transactionTable, $entity);
 
                 if ($rollback) {
                     $this->addToRollback($entity);
@@ -747,7 +738,7 @@ class Table extends BaseNoSqlDbTableResource
                     if (!isset($this->batchOps)) {
                         $this->batchOps = new BatchOperations();
                     }
-                    if (Scalar::boolval(array_get($extras, ApiOptions::UPSERT))) {
+                    if ($this->parent->upsertAllowed()) {
                         $this->batchOps->addInsertOrReplaceEntity($this->transactionTable, $entity);
                     } else {
                         $this->batchOps->addUpdateEntity($this->transactionTable, $entity);
@@ -766,7 +757,7 @@ class Table extends BaseNoSqlDbTableResource
                     $this->addToRollback($old);
                 }
 
-                if (Scalar::boolval(array_get($extras, ApiOptions::UPSERT))) {
+                if ($this->parent->upsertAllowed()) {
                     $this->getConnection()->insertOrReplaceEntity($this->transactionTable, $entity);
                 } else {
                     $this->getConnection()->updateEntity($this->transactionTable, $entity);
