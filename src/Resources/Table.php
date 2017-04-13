@@ -555,7 +555,7 @@ class Table extends BaseNoSqlDbTableResource
         return $filters;
     }
 
-    protected static function checkForIds(&$record, $ids_info, $extras = null, $on_create = false, $remove = false)
+    protected function checkForIds(&$record, $ids_info, $extras = null, $on_create = false, $remove = false)
     {
         $id = null;
         if (!empty($ids_info)) {
@@ -570,7 +570,7 @@ class Table extends BaseNoSqlDbTableResource
                 } elseif (static::ROW_KEY == $name) {
                     $value = $record;
                 }
-                if (!empty($value)) {
+                if (!is_null($value)) {
                     switch ($info->type) {
                         case DbSimpleTypes::TYPE_INTEGER:
                             $value = intval($value);
@@ -599,12 +599,12 @@ class Table extends BaseNoSqlDbTableResource
                     } elseif (static::ROW_KEY == $name) {
                         $value = $record;
                     }
-                    if (!empty($value)) {
+                    if (!is_null($value)) {
                         switch ($info->type) {
-                            case 'int':
+                            case DbSimpleTypes::TYPE_INTEGER:
                                 $value = intval($value);
                                 break;
-                            case 'string':
+                            case DbSimpleTypes::TYPE_STRING:
                                 $value = strval($value);
                                 break;
                         }
@@ -627,7 +627,7 @@ class Table extends BaseNoSqlDbTableResource
         if (!empty($id)) {
             return $id;
         } elseif ($on_create) {
-            return [];
+            return null;
         }
 
         return false;
