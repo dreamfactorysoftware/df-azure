@@ -20,7 +20,6 @@ use DreamFactory\Core\Exceptions\ForbiddenException;
 use DreamFactory\Core\Database\Schema\ColumnSchema;
 use DreamFactory\Library\Utility\Enums\Verbs;
 use DreamFactory\Library\Utility\Scalar;
-use Config;
 
 class DocumentDbTable extends BaseNoSqlDbTableResource
 {
@@ -38,6 +37,97 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
     private $i = 1;
 
     /**
+     * {@inheritdoc}
+     */
+    public function updateRecordsByFilter($table, $record, $filter = null, $params = [], $extras = [], $patch = false)
+    {
+        $record = static::validateAsArray($record, null, false, 'There are no fields in the record.');
+
+        $fields = array_get($extras, ApiOptions::FIELDS);
+        $idFields = array_get($extras, ApiOptions::ID_FIELD);
+        $idTypes = array_get($extras, ApiOptions::ID_TYPE);
+
+        // slow, but workable for now, maybe faster than merging individuals
+        $extras[ApiOptions::FIELDS] = ApiOptions::FIELDS_ALL;
+        $records = $this->retrieveRecordsByFilter($table, $filter, $params, $extras);
+        unset($records['meta']);
+
+        $fieldsInfo = $this->getFieldsInfo($table);
+        $idsInfo = $this->getIdsInfo($table, $fieldsInfo, $idFields, $idTypes);
+        if (empty($idsInfo)) {
+            throw new InternalServerErrorException("Identifying field(s) could not be determined.");
+        }
+
+        $ids = $this->recordsAsIds($records, $idsInfo);
+        if (empty($ids)) {
+            return [];
+        }
+
+        $extras[ApiOptions::FIELDS] = $fields;
+
+        if (true === $patch) {
+            $newRecords = [];
+            foreach ($ids as $id) {
+                $record[static::ID_FIELD] = $id;
+                $newRecords[] = $record;
+            }
+            $newRecords = $this->mergeRecords($newRecords);
+
+            return $this->updateRecords($this->transactionTable, $newRecords, $extras);
+        } else {
+            return $this->updateRecordsByIds($table, $record, $ids, $extras);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function retrieveRecordsByFilter($table, $filter = null, $params = [], $extras = [])
+    {
+        $fields = array_get($extras, ApiOptions::FIELDS);
+        $includeCounts = Scalar::boolval(array_get($extras, ApiOptions::INCLUDE_COUNT));
+        $limit = array_get($extras, 'limit', static::getMaxRecordsReturnedLimit());
+        $orderBy = $this->cleanOrderBy($table, array_get($extras, 'order_by'));
+
+        if (empty($filter)) {
+            if (!empty($orderBy)) {
+                /** @noinspection SqlDialectInspection */
+                /** @noinspection SqlNoDataSourceInspection */
+                $sql = "SELECT * FROM " . $table . ' ORDER BY ' . $orderBy;
+                $result =
+                    $this->getConnection()->queryDocument($table, $sql, $params, [Conn::OPT_LIMIT => $limit]);
+            } else {
+                $result = $this->getConnection()->listDocuments($table, [Conn::OPT_LIMIT => $limit]);
+            }
+            $docs = array_get($result, 'Documents');
+            $out = static::cleanRecords($docs, $fields, static::ID_FIELD);
+        } else {
+            $params = [];
+            $fieldList = explode(',', $fields);
+            $this->i = 1;
+            $filterString = $this->parseFilterString($table, $filter, $params);
+            if ($fields !== ApiOptions::FIELDS_ALL) {
+                foreach ($fieldList as $k => $f) {
+                    $fieldList[$k] = $table . '.' . $f;
+                }
+                $fields = implode(',', $fieldList);
+            }
+            $sql = "SELECT " . $fields . " FROM " . $table . " WHERE " . $filterString;
+            if (!empty($orderBy)) {
+                $sql .= ' ORDER BY ' . $orderBy;
+            }
+            $result = $this->getConnection()->queryDocument($table, $sql, $params, [Conn::OPT_LIMIT => $limit]);
+            $out = array_get($result, 'Documents');
+        }
+
+        if (true === $includeCounts) {
+            $out['meta']['count'] = intval(array_get($result, '_count'));
+        }
+
+        return $out;
+    }
+
+    /**
      * @return DocumentDBConnection
      */
     protected function getConnection()
@@ -45,13 +135,11 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
         return $this->parent->getConnection();
     }
 
-    /** {@inheritdoc} */
-    protected function getIdsInfo(
-        $table,
-        $fields_info = null,
-        &$requested_fields = null,
-        $requested_types = null
-    ) {
+    /**
+     * {@inheritdoc}
+     */
+    protected function getIdsInfo($table, $fields_info = null, &$requested_fields = null, $requested_types = null)
+    {
         $requested_fields = [static::ID_FIELD]; // can only be this
         $ids = [
             new ColumnSchema(['name' => static::ID_FIELD, 'type' => 'string', 'required' => false]),
@@ -60,48 +148,138 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
         return $ids;
     }
 
-    /** {@inheritdoc} */
-    protected function rollbackTransaction()
-    {
-        if (!empty($this->rollbackRecords)) {
-            switch ($this->getAction()) {
-                case Verbs::POST:
-                    foreach ($this->rollbackRecords as $rr) {
-                        $id = array_get($rr, static::ID_FIELD);
-                        if (!empty($id)) {
-                            $this->getConnection()->deleteDocument($this->transactionTable, $id);
-                        }
-                    }
-                    break;
-                case Verbs::PUT:
-                case Verbs::PATCH:
-                    foreach ($this->rollbackRecords as $rr) {
-                        $id = array_get($rr, static::ID_FIELD);
-                        if (!empty($id)) {
-                            $this->getConnection()->replaceDocument($this->transactionTable, $rr, $id);
-                        }
-                    }
-                    break;
-                case Verbs::DELETE:
-                    foreach ($this->rollbackRecords as $rr) {
-                        $id = array_get($rr, static::ID_FIELD);
-                        if (!empty($id)) {
-                            $this->getConnection()->createDocument($this->transactionTable, $rr);
-                        }
-                    }
-                    break;
-                default:
-                    // nothing to do here, rollback handled on bulk calls
-                    break;
-            }
+    /**
+     * @inheritdoc
+     */
+    protected function addToTransaction(
+        $record = null,
+        $id = null,
+        $extras = null,
+        $rollback = false,
+        $continue = false,
+        $single = false
+    ) {
+        $fields = array_get($extras, ApiOptions::FIELDS);
 
-            $this->rollbackRecords = [];
+        $out = [];
+        switch ($this->getAction()) {
+            case Verbs::POST:
+                $result = $rs = $this->getConnection()->createDocument($this->transactionTable, $record);
+                if ($rollback) {
+                    static::addToRollback($rs);
+                }
+
+                $out = static::cleanRecord($result, static::ID_FIELD);
+                break;
+
+            case Verbs::PUT:
+            case Verbs::PATCH:
+                if (!empty($update = array_get($extras, 'updates'))) {
+                    foreach ($this->batchIds as $id) {
+                        $update[static::ID_FIELD] = $id;
+                        $records[] = $update;
+                    }
+                }
+
+                $id = array_get($record, static::ID_FIELD);
+                if ($rollback) {
+                    if (!empty($id)) {
+                        try {
+                            $rs = $this->getConnection()->getDocument($this->transactionTable, $id);
+                            static::addToRollback($rs);
+                        } catch (RestException $e) {
+                            if ($e->getStatusCode() !== HttpStatusCodes::HTTP_NOT_FOUND) {
+                                throw $e;
+                            }
+                        }
+                    }
+                }
+
+                try {
+                    $result =
+                        $this->getConnection()->replaceDocument($this->transactionTable, $record, $id);
+                } catch (\Exception $e) {
+                    if (false === $continue && false === $rollback) {
+                        throw $e;
+                    } else {
+                        $result[] = $e->getMessage();
+                        $errors[] = (!count($result)) ?: count($result) - 1;
+
+                        if (true === $rollback) {
+                            if ($e instanceof DfException) {
+                                $e->setContext(['error' => $errors, ResourcesWrapper::getWrapper() => $result]);
+                                $e->setMessage('Batch Error: Not all requested records could be updated.');
+                            }
+                            throw $e;
+                        }
+                    }
+                }
+
+                if (!empty($errors)) {
+                    $context = ['error' => $errors, ResourcesWrapper::getWrapper() => $result];
+                    throw new BadRequestException('Batch Error: Not all requested records could be updated.', null,
+                        null, $context);
+                }
+
+                $out = static::cleanRecord($result, static::ID_FIELD);
+                break;
+
+            case Verbs::DELETE:
+                if ($rollback) {
+                    try {
+                        $result = $this->getConnection()->getDocument($this->transactionTable, $id);
+                        static::addToRollback($result);
+                    } catch (RestException $e) {
+                        if ($e->getStatusCode() !== HttpStatusCodes::HTTP_NOT_FOUND) {
+                            throw $e;
+                        }
+                    }
+                }
+
+                try {
+                    $this->getConnection()->deleteDocument($this->transactionTable, $id);
+                    $result[] = ['id' => $id];
+                } catch (\Exception $e) {
+                    if (false === $continue && false === $rollback) {
+                        throw $e;
+                    } else {
+                        $result[] = $e->getMessage();
+                        $errors[] = (!count($result)) ?: count($result) - 1;
+
+                        if (true === $rollback) {
+                            if ($e instanceof DfException) {
+                                $e->setContext(['error' => $errors, ResourcesWrapper::getWrapper() => $result]);
+                                $e->setMessage('Batch Error: Not all requested records could be deleted.');
+                            }
+                            throw $e;
+                        }
+                    }
+                }
+
+                $out = static::cleanRecord($result, $fields, static::ID_FIELD);
+                break;
+
+            case Verbs::GET:
+                try {
+                    $result = $this->getConnection()->getDocument($this->transactionTable, $id);
+                } catch (RestException $e) {
+                    if ($e->getStatusCode() == HttpStatusCodes::HTTP_NOT_FOUND) {
+                        throw new NotFoundException("Record with id '$id' not found.");
+                    } else {
+                        throw $e;
+                    }
+                }
+
+                $out = static::cleanRecord($result, $fields, static::ID_FIELD);
+                break;
         }
 
-        return true;
+        return $out;
     }
 
-    /** {@inheritdoc} */
+    /**
+     * {@inheritdoc}
+     */
     protected function commitTransaction($extras = null)
     {
         if (empty($this->batchRecords) && empty($this->batchIds)) {
@@ -266,47 +444,44 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
     }
 
     /** {@inheritdoc} */
-    public function retrieveRecordsByFilter($table, $filter = null, $params = [], $extras = [])
+    protected function rollbackTransaction()
     {
-        $fields = array_get($extras, ApiOptions::FIELDS);
-        $includeCounts = Scalar::boolval(array_get($extras, ApiOptions::INCLUDE_COUNT));
-        $limit = array_get($extras, 'limit', Config::get('df.db.max_records_returned'));
-        $orderBy = $this->cleanOrderBy($table, array_get($extras, 'order_by'));
+        if (!empty($this->rollbackRecords)) {
+            switch ($this->getAction()) {
+                case Verbs::POST:
+                    foreach ($this->rollbackRecords as $rr) {
+                        $id = array_get($rr, static::ID_FIELD);
+                        if (!empty($id)) {
+                            $this->getConnection()->deleteDocument($this->transactionTable, $id);
+                        }
+                    }
+                    break;
+                case Verbs::PUT:
+                case Verbs::PATCH:
+                    foreach ($this->rollbackRecords as $rr) {
+                        $id = array_get($rr, static::ID_FIELD);
+                        if (!empty($id)) {
+                            $this->getConnection()->replaceDocument($this->transactionTable, $rr, $id);
+                        }
+                    }
+                    break;
+                case Verbs::DELETE:
+                    foreach ($this->rollbackRecords as $rr) {
+                        $id = array_get($rr, static::ID_FIELD);
+                        if (!empty($id)) {
+                            $this->getConnection()->createDocument($this->transactionTable, $rr);
+                        }
+                    }
+                    break;
+                default:
+                    // nothing to do here, rollback handled on bulk calls
+                    break;
+            }
 
-        if (empty($filter)) {
-            if (!empty($orderBy)) {
-                $sql = "SELECT * FROM " . $table . ' ORDER BY ' . $orderBy;
-                $result =
-                    $this->getConnection()->queryDocument($table, $sql, $params, [Conn::OPT_LIMIT => $limit]);
-            } else {
-                $result = $this->getConnection()->listDocuments($table, [Conn::OPT_LIMIT => $limit]);
-            }
-            $docs = array_get($result, 'Documents');
-            $out = static::cleanRecords($docs, $fields, static::ID_FIELD);
-        } else {
-            $params = [];
-            $fieldList = explode(',', $fields);
-            $this->i = 1;
-            $filterString = $this->parseFilterString($table, $filter, $params);
-            if ($fields !== ApiOptions::FIELDS_ALL) {
-                foreach ($fieldList as $k => $f) {
-                    $fieldList[$k] = $table . '.' . $f;
-                }
-                $fields = implode(',', $fieldList);
-            }
-            $sql = "SELECT " . $fields . " FROM " . $table . " WHERE " . $filterString;
-            if (!empty($orderBy)) {
-                $sql .= ' ORDER BY ' . $orderBy;
-            }
-            $result = $this->getConnection()->queryDocument($table, $sql, $params, [Conn::OPT_LIMIT => $limit]);
-            $out = array_get($result, 'Documents');
+            $this->rollbackRecords = [];
         }
 
-        if (true === $includeCounts) {
-            $out['meta']['count'] = intval(array_get($result, '_count'));
-        }
-
-        return $out;
+        return true;
     }
 
     /**
@@ -526,343 +701,6 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
         return $value;
     }
 
-    /** {@inheritdoc} */
-    public function updateRecords($table, $records, $extras = [])
-    {
-        $records = static::validateAsArray($records, null, true, 'The request contains no valid record sets.');
-
-        $fields = array_get($extras, ApiOptions::FIELDS);
-        $idFields = array_get($extras, ApiOptions::ID_FIELD);
-        $idTypes = array_get($extras, ApiOptions::ID_TYPE);
-        $isSingle = (1 == count($records));
-        $rollback = ($isSingle) ? false : Scalar::boolval(array_get($extras, ApiOptions::ROLLBACK, false));
-        $continue = ($isSingle) ? false : Scalar::boolval(array_get($extras, ApiOptions::CONTINUES, false));
-        if ($rollback && $continue) {
-            throw new BadRequestException('Rollback and continue operations can not be requested at the same time.');
-        }
-
-        $this->initTransaction($table, $idFields, $idTypes);
-
-        $extras['id_fields'] = $idFields;
-        $extras['require_more'] = static::requireMoreFields($fields, $idFields);
-
-        $out = [];
-        $errors = [];
-        try {
-            foreach ($records as $index => $record) {
-                try {
-                    if (false === $id = static::checkForIds($record, $this->tableIdsInfo, $extras)) {
-                        throw new BadRequestException("Required id field(s) not found in record $index: " .
-                            print_r($record, true));
-                    }
-
-                    $result = $this->addToTransaction($record, $id, $extras, $rollback, $continue, $isSingle);
-                    if (isset($result)) {
-                        // operation performed, take output
-                        $out[$index] = $result;
-                    }
-                } catch (\Exception $ex) {
-                    if ($isSingle || $rollback || !$continue) {
-                        if (0 !== $index) {
-                            // first error, don't worry about batch just throw it
-                            // mark last error and index for batch results
-                            $errors[] = $index;
-                            $out[$index] = $ex->getMessage();
-                        }
-
-                        throw $ex;
-                    }
-
-                    // mark error and index for batch results
-                    $errors[] = $index;
-                    $out[$index] = $ex->getMessage();
-                }
-            }
-
-            $result = $this->commitTransaction($extras);
-            if (isset($result)) {
-                $out = $result;
-            }
-
-            if (!empty($errors)) {
-                throw new BadRequestException();
-            }
-
-            return $out;
-        } catch (\Exception $ex) {
-            $msg = $ex->getMessage();
-
-            $context = null;
-            if (!empty($errors)) {
-                $wrapper = ResourcesWrapper::getWrapper();
-                $context = ['error' => $errors, $wrapper => $out];
-                $msg = 'Batch Error: Not all requested records could be updated.';
-            }
-
-            if ($rollback) {
-                $this->rollbackTransaction();
-
-                $msg .= " All changes rolled back.";
-            }
-
-            if ($ex instanceof RestException) {
-                $ex->setMessage($msg);
-                throw $ex;
-            }
-
-            throw new InternalServerErrorException("Failed to update records in '$table'.\n$msg", null, null, $context);
-        }
-    }
-
-    /** {@inheritdoc} */
-    public function updateRecordsByIds($table, $record, $ids, $extras = [])
-    {
-        $record = static::validateAsArray($record, null, false, 'There are no fields in the record.');
-        $ids = static::validateAsArray($ids, ',', true, 'The request contains no valid identifiers.');
-
-        $fields = array_get($extras, ApiOptions::FIELDS);
-        $idFields = array_get($extras, ApiOptions::ID_FIELD);
-        $idTypes = array_get($extras, ApiOptions::ID_TYPE);
-        $isSingle = (1 == count($ids));
-        $rollback = ($isSingle) ? false : Scalar::boolval(array_get($extras, ApiOptions::ROLLBACK, false));
-        $continue = ($isSingle) ? false : Scalar::boolval(array_get($extras, ApiOptions::CONTINUES, false));
-        if ($rollback && $continue) {
-            throw new BadRequestException('Rollback and continue operations can not be requested at the same time.');
-        }
-
-        $this->initTransaction($table, $idFields, $idTypes);
-
-        $extras['id_fields'] = $idFields;
-        $extras['require_more'] = static::requireMoreFields($fields, $idFields);
-
-        static::removeIds($record, $idFields);
-        $extras['updates'] = $record;
-
-        $out = [];
-        $errors = [];
-        try {
-            foreach ($ids as $index => $id) {
-                try {
-                    if (false === $id = static::checkForIds($id, $this->tableIdsInfo, $extras, true)) {
-                        throw new BadRequestException("Required id field(s) not valid in request $index: " .
-                            print_r($id, true));
-                    }
-
-                    $result = $this->addToTransaction(null, $id, $extras, $rollback, $continue, $isSingle);
-                    if (isset($result)) {
-                        // operation performed, take output
-                        $out[$index] = $result;
-                    }
-                } catch (\Exception $ex) {
-                    if ($isSingle || $rollback || !$continue) {
-                        if (0 !== $index) {
-                            // first error, don't worry about batch just throw it
-                            // mark last error and index for batch results
-                            $errors[] = $index;
-                            $out[$index] = $ex->getMessage();
-                        }
-
-                        throw $ex;
-                    }
-
-                    // mark error and index for batch results
-                    $errors[] = $index;
-                    $out[$index] = $ex->getMessage();
-                }
-            }
-
-            if (!empty($errors)) {
-                throw new BadRequestException();
-            }
-
-            $result = $this->commitTransaction($extras);
-            if (isset($result)) {
-                $out = $result;
-            }
-
-            return $out;
-        } catch (\Exception $ex) {
-            $msg = $ex->getMessage();
-
-            $context = null;
-            if (!empty($errors)) {
-                $wrapper = ResourcesWrapper::getWrapper();
-                $context = ['error' => $errors, $wrapper => $out];
-                $msg = 'Batch Error: Not all requested records could be updated.';
-            }
-
-            if ($rollback) {
-                $this->rollbackTransaction();
-
-                $msg .= " All changes rolled back.";
-            }
-
-            if ($ex instanceof RestException) {
-                $ex->setMessage($msg);
-                throw $ex;
-            }
-
-            throw new InternalServerErrorException("Failed to update records in '$table'.\n$msg", null, null, $context);
-        }
-    }
-
-    /** {@inheritdoc} */
-    public function updateRecordsByFilter($table, $record, $filter = null, $params = [], $extras = [], $patch = false)
-    {
-        $record = static::validateAsArray($record, null, false, 'There are no fields in the record.');
-
-        $fields = array_get($extras, ApiOptions::FIELDS);
-        $idFields = array_get($extras, ApiOptions::ID_FIELD);
-        $idTypes = array_get($extras, ApiOptions::ID_TYPE);
-
-        // slow, but workable for now, maybe faster than merging individuals
-        $extras[ApiOptions::FIELDS] = ApiOptions::FIELDS_ALL;
-        $records = $this->retrieveRecordsByFilter($table, $filter, $params, $extras);
-        unset($records['meta']);
-
-        $fieldsInfo = $this->getFieldsInfo($table);
-        $idsInfo = $this->getIdsInfo($table, $fieldsInfo, $idFields, $idTypes);
-        if (empty($idsInfo)) {
-            throw new InternalServerErrorException("Identifying field(s) could not be determined.");
-        }
-
-        $ids = static::recordsAsIds($records, $idsInfo);
-        if (empty($ids)) {
-            return [];
-        }
-
-        $extras[ApiOptions::FIELDS] = $fields;
-
-        if (true === $patch) {
-            $newRecords = [];
-            foreach ($ids as $id) {
-                $record[static::ID_FIELD] = $id;
-                $newRecords[] = $record;
-            }
-            $newRecords = $this->mergeRecords($newRecords);
-
-            return $this->updateRecords($this->transactionTable, $newRecords, $extras);
-        } else {
-            return $this->updateRecordsByIds($table, $record, $ids, $extras);
-        }
-    }
-
-    /** {@inheritdoc} */
-    public function deleteRecordsByFilter($table, $filter, $params = [], $extras = [])
-    {
-        $fields = array_get($extras, ApiOptions::FIELDS);
-        $idFields = array_get($extras, ApiOptions::ID_FIELD);
-        $idTypes = array_get($extras, ApiOptions::ID_TYPE);
-
-        // slow, but workable for now, maybe faster than deleting individuals
-        $extras[ApiOptions::FIELDS] = static::ID_FIELD;
-        $records = $this->retrieveRecordsByFilter($table, $filter, $params, $extras);
-        unset($records['meta']);
-
-        $fieldsInfo = $this->getFieldsInfo($table);
-        $idsInfo = $this->getIdsInfo($table, $fieldsInfo, $idFields, $idTypes);
-        if (empty($idsInfo)) {
-            throw new InternalServerErrorException("Identifying field(s) could not be determined.");
-        }
-
-        $ids = static::recordsAsIds($records, $idsInfo, $extras);
-        if (empty($ids)) {
-            return [];
-        }
-
-        $extras[ApiOptions::FIELDS] = $fields;
-
-        return $this->deleteRecordsByIds($table, $ids, $extras);
-    }
-
-    /** {@inheritdoc} */
-    public function deleteRecordsByIds($table, $ids, $extras = [])
-    {
-        $ids = static::validateAsArray($ids, ',', true, 'The request contains no valid identifiers.');
-
-        $fields = array_get($extras, ApiOptions::FIELDS);
-        $idFields = array_get($extras, ApiOptions::ID_FIELD);
-        $idTypes = array_get($extras, ApiOptions::ID_TYPE);
-        $isSingle = (1 == count($ids));
-        $rollback = ($isSingle) ? false : Scalar::boolval(array_get($extras, ApiOptions::ROLLBACK, false));
-        $continue = ($isSingle) ? false : Scalar::boolval(array_get($extras, ApiOptions::CONTINUES, false));
-        if ($rollback && $continue) {
-            throw new BadRequestException('Rollback and continue operations can not be requested at the same time.');
-        }
-
-        $this->initTransaction($table, $idFields, $idTypes);
-
-        $extras['id_fields'] = $idFields;
-        $extras['require_more'] = static::requireMoreFields($fields, $idFields);
-
-        $out = [];
-        $errors = [];
-        try {
-            foreach ($ids as $index => $id) {
-                try {
-                    if (false === $id = static::checkForIds($id, $this->tableIdsInfo, $extras, true)) {
-                        throw new BadRequestException("Required id field(s) not valid in request $index: " .
-                            print_r($id, true));
-                    }
-
-                    $result = $this->addToTransaction(null, $id, $extras, $rollback, $continue, $isSingle);
-                    if (isset($result)) {
-                        // operation performed, take output
-                        $out[$index] = $result;
-                    }
-                } catch (\Exception $ex) {
-                    if ($isSingle || $rollback || !$continue) {
-                        if (0 !== $index) {
-                            // first error, don't worry about batch just throw it
-                            // mark last error and index for batch results
-                            $errors[] = $index;
-                            $out[$index] = $ex->getMessage();
-                        }
-
-                        throw $ex;
-                    }
-
-                    // mark error and index for batch results
-                    $errors[] = $index;
-                    $out[$index] = $ex->getMessage();
-                }
-            }
-
-            if (!empty($errors)) {
-                throw new BadRequestException();
-            }
-
-            $result = $this->commitTransaction($extras);
-            if (isset($result)) {
-                $out = $result;
-            }
-
-            return $out;
-        } catch (\Exception $ex) {
-            $msg = $ex->getMessage();
-
-            $context = null;
-            if (!empty($errors)) {
-                $wrapper = ResourcesWrapper::getWrapper();
-                $context = ['error' => $errors, $wrapper => $out];
-                $msg = 'Batch Error: Not all requested records could be deleted.';
-            }
-
-            if ($rollback) {
-                $this->rollbackTransaction();
-
-                $msg .= " All changes rolled back.";
-            }
-
-            if ($ex instanceof RestException) {
-                $ex->setMessage($msg);
-                throw $ex;
-            }
-
-            throw new InternalServerErrorException("Failed to delete records from '$table'.\n$msg", null, null,
-                $context);
-        }
-    }
 
     /** {@inheritdoc} */
     protected function handlePatch()
@@ -879,7 +717,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
 
         $options = $this->request->getParameters();
 
-        if (!empty($this->resourceId)) {
+        if (!is_null($this->resourceId)) {
             $record = $this->getPayloadData();
             $record[static::ID_FIELD] = $this->resourceId;
             $record = array_get($this->mergeRecords([$record]), 0);

@@ -1,9 +1,9 @@
 <?php
 namespace DreamFactory\Core\Azure;
 
-use DreamFactory\Core\Azure\Components\AzureBlobConfig;
-use DreamFactory\Core\Azure\Models\AzureConfig;
+use DreamFactory\Core\Azure\Models\BlobConfig;
 use DreamFactory\Core\Azure\Models\DocumentDbConfig;
+use DreamFactory\Core\Azure\Models\TableConfig;
 use DreamFactory\Core\Azure\Services\Blob;
 use DreamFactory\Core\Azure\Services\DocumentDB;
 use DreamFactory\Core\Azure\Services\Table;
@@ -26,7 +26,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                     'label'           => 'Azure Blob Storage',
                     'description'     => 'File service supporting the Microsoft Azure Blob storage.',
                     'group'           => ServiceTypeGroups::FILE,
-                    'config_handler'  => AzureBlobConfig::class,
+                    'config_handler'  => BlobConfig::class,
                     'default_api_doc' => function ($service) {
                         return $this->buildServiceDoc($service->id, Blob::getApiDocInfo($service));
                     },
@@ -41,7 +41,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                     'label'           => 'Azure Table Storage',
                     'description'     => 'Database service supporting the Microsoft Azure Table storage.',
                     'group'           => ServiceTypeGroups::DATABASE,
-                    'config_handler'  => AzureConfig::class,
+                    'config_handler'  => TableConfig::class,
                     'default_api_doc' => function ($service) {
                         return $this->buildServiceDoc($service->id, Table::getApiDocInfo($service));
                     },

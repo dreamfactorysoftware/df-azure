@@ -3,7 +3,7 @@ namespace DreamFactory\Core\Azure\Components;
 
 use DreamFactory\Core\Utility\Session;
 use InvalidArgumentException;
-use DreamFactory\Core\Components\RemoteFileSystem;
+use DreamFactory\Core\File\Components\RemoteFileSystem;
 use DreamFactory\Core\Exceptions\DfException;
 use DreamFactory\Core\Exceptions\NotFoundException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;

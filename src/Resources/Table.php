@@ -234,7 +234,7 @@ class Table extends BaseNoSqlDbTableResource
         $fields = null,
         $extras = [],
         $parse_results = false
-    ){
+    ) {
         $options = new QueryEntitiesOptions();
         $options->setSelectFields([]);
 
@@ -555,7 +555,7 @@ class Table extends BaseNoSqlDbTableResource
         return $filters;
     }
 
-    protected static function checkForIds(&$record, $ids_info, $extras = null, $on_create = false, $remove = false)
+    protected function checkForIds(&$record, $ids_info, $extras = null, $on_create = false, $remove = false)
     {
         $id = null;
         if (!empty($ids_info)) {
@@ -570,7 +570,7 @@ class Table extends BaseNoSqlDbTableResource
                 } elseif (static::ROW_KEY == $name) {
                     $value = $record;
                 }
-                if (!empty($value)) {
+                if (!is_null($value)) {
                     switch ($info->type) {
                         case DbSimpleTypes::TYPE_INTEGER:
                             $value = intval($value);
@@ -599,12 +599,12 @@ class Table extends BaseNoSqlDbTableResource
                     } elseif (static::ROW_KEY == $name) {
                         $value = $record;
                     }
-                    if (!empty($value)) {
+                    if (!is_null($value)) {
                         switch ($info->type) {
-                            case 'int':
+                            case DbSimpleTypes::TYPE_INTEGER:
                                 $value = intval($value);
                                 break;
-                            case 'string':
+                            case DbSimpleTypes::TYPE_STRING:
                                 $value = strval($value);
                                 break;
                         }
@@ -627,7 +627,7 @@ class Table extends BaseNoSqlDbTableResource
         if (!empty($id)) {
             return $id;
         } elseif ($on_create) {
-            return [];
+            return null;
         }
 
         return false;
@@ -654,7 +654,7 @@ class Table extends BaseNoSqlDbTableResource
         $rollback = false,
         $continue = false,
         $single = false
-    ){
+    ) {
         $ssFilters = array_get($extras, 'ss_filters');
         $fields = array_get($extras, ApiOptions::FIELDS);
         $requireMore = array_get($extras, 'require_more');
@@ -725,21 +725,24 @@ class Table extends BaseNoSqlDbTableResource
                     return parent::addToTransaction($record);
                 }
 
-                /** @var InsertEntityResult $result */
-                $result = $this->getConnection()->insertEntity($this->transactionTable, $entity);
+                $this->getConnection()->insertEntity($this->transactionTable, $entity);
 
                 if ($rollback) {
                     $this->addToRollback($entity);
                 }
 
-                $out = static::parseEntityToRecord($result->getEntity(), $fields);
+                $out = static::parseEntityToRecord($entity, $fields);
                 break;
             case Verbs::PUT:
                 if ($batch) {
                     if (!isset($this->batchOps)) {
                         $this->batchOps = new BatchOperations();
                     }
-                    $this->batchOps->addUpdateEntity($this->transactionTable, $entity);
+                    if ($this->parent->upsertAllowed()) {
+                        $this->batchOps->addInsertOrReplaceEntity($this->transactionTable, $entity);
+                    } else {
+                        $this->batchOps->addUpdateEntity($this->transactionTable, $entity);
+                    }
 
                     // track record for output
                     return parent::addToTransaction($record);
@@ -754,8 +757,11 @@ class Table extends BaseNoSqlDbTableResource
                     $this->addToRollback($old);
                 }
 
-                /** @var UpdateEntityResult $result */
-                $this->getConnection()->updateEntity($this->transactionTable, $entity);
+                if ($this->parent->upsertAllowed()) {
+                    $this->getConnection()->insertOrReplaceEntity($this->transactionTable, $entity);
+                } else {
+                    $this->getConnection()->updateEntity($this->transactionTable, $entity);
+                }
 
                 $out = static::parseEntityToRecord($entity, $fields);
                 break;

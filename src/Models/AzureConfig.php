@@ -2,7 +2,6 @@
 namespace DreamFactory\Core\Azure\Models;
 
 use DreamFactory\Core\Models\BaseServiceConfigModel;
-use DreamFactory\Core\Exceptions\BadRequestException;
 
 /**
  * Class AzureConfig
@@ -19,24 +18,11 @@ class AzureConfig extends BaseServiceConfigModel
 
     protected $protected = ['account_key'];
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function validateConfig($config, $create = true)
-    {
-        $validator = static::makeValidator($config, [
-            'account_name' => 'required',
-            'account_key'  => 'required',
-            'protocol'     => 'required'
-        ], $create);
-
-        if ($validator->fails()) {
-            $messages = $validator->messages()->getMessages();
-            throw new BadRequestException('Validation failed.', null, null, $messages);
-        }
-
-        return true;
-    }
+    protected $rules = [
+        'account_name' => 'required',
+        'account_key'  => 'required',
+        'protocol'     => 'required'
+    ];
 
     /**
      * @param array $schema
