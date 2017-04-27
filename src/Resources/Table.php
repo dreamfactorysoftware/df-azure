@@ -6,7 +6,7 @@ use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\Database\Resources\BaseNoSqlDbTableResource;
 use DreamFactory\Core\Enums\DbSimpleTypes;
 use DreamFactory\Core\Utility\Session;
-use DreamFactory\Library\Utility\Enums\Verbs;
+use DreamFactory\Core\Enums\Verbs;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Azure\Services\Table as TableService;
