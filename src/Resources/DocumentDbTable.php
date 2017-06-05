@@ -18,8 +18,7 @@ use DreamFactory\Core\Enums\DbLogicalOperators;
 use DreamFactory\Core\Enums\DbComparisonOperators;
 use DreamFactory\Core\Exceptions\ForbiddenException;
 use DreamFactory\Core\Database\Schema\ColumnSchema;
-use DreamFactory\Library\Utility\Enums\Verbs;
-use DreamFactory\Library\Utility\Scalar;
+use DreamFactory\Core\Enums\Verbs;
 
 class DocumentDbTable extends BaseNoSqlDbTableResource
 {
@@ -85,7 +84,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
     public function retrieveRecordsByFilter($table, $filter = null, $params = [], $extras = [])
     {
         $fields = array_get($extras, ApiOptions::FIELDS);
-        $includeCounts = Scalar::boolval(array_get($extras, ApiOptions::INCLUDE_COUNT));
+        $includeCounts = array_get_bool($extras, ApiOptions::INCLUDE_COUNT);
         $limit = array_get($extras, 'limit', static::getMaxRecordsReturnedLimit());
         $orderBy = $this->cleanOrderBy($table, array_get($extras, 'order_by'));
 
@@ -285,8 +284,8 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
         if (empty($this->batchRecords) && empty($this->batchIds)) {
             return null;
         }
-        $rollback = Scalar::boolval(array_get($extras, 'rollback'));
-        $continue = Scalar::boolval(array_get($extras, 'continue'));
+        $rollback = array_get_bool($extras, 'rollback');
+        $continue = array_get_bool($extras, 'continue');
         $fields = array_get($extras, ApiOptions::FIELDS);
 
         $out = [];

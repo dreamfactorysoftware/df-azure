@@ -1,6 +1,6 @@
 <?php
 
-use DreamFactory\Library\Utility\Enums\Verbs;
+use DreamFactory\Core\Enums\Verbs;
 
 class FileServiceAzureBlobTest extends \DreamFactory\Core\Testing\FileServiceTestCase
 {
