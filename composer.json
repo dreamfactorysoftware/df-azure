@@ -32,7 +32,7 @@
     "dreamfactory/df-database":              "~0.4.0",
     "dreamfactory/df-file":                  "~0.2.0",
     "microsoft/azure-storage":               "0.13.*",
-    "dreamfactory/azure-documentdb-php-sdk": "~0.1.0"
+    "dreamfactory/azure-documentdb-php-sdk": "~0.2.0"
   },
   "autoload":    {
     "psr-4": {
