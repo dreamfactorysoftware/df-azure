@@ -89,7 +89,7 @@ class DocumentDBConnection
         $this->setOptions($options);
         $coll = new Collection($this->client, $this->database);
         $coll->setHeaders($this->getHeaders());
-        $rs = $coll->list();
+        $rs = $coll->getAll();
         $this->checkResponse($rs);
         $colls = array_get($rs, 'DocumentCollections');
         $list = [];
@@ -200,7 +200,7 @@ class DocumentDBConnection
         $this->setOptions($options);
         $doc = new Document($this->client, $this->database, $collection);
         $doc->setHeaders($this->getHeaders());
-        $rs = $doc->list();
+        $rs = $doc->getAll();
         $this->checkResponse($rs);
         unset($rs['_curl_info']);
 
