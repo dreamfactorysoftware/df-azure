@@ -27,25 +27,19 @@ class DocumentDB extends BaseDbService
         ],
     ];
 
-    /** {@inheritdoc} */
-    public function __construct(array $settings)
+    protected function initializeConnection()
     {
-        parent::__construct($settings);
+        $uri = array_get($this->config, 'uri');
+        $key = array_get($this->config, 'key');
+        $database = array_get($this->config, 'database');
 
-        $config = (array)array_get($settings, 'config');
-        Session::replaceLookups($config, true);
-
-        $uri = array_get($config, 'uri');
-        $key = array_get($config, 'key');
-        $database = array_get($config, 'database');
-
-        if(empty($uri)){
+        if (empty($uri)) {
             throw new \InvalidArgumentException('Azure DocumentDB URI is missing. Check the service configuration.');
         }
-        if(empty($key)){
+        if (empty($key)) {
             throw new \InvalidArgumentException('Azure DocumentDB Key is missing. Check the service configuration.');
         }
-        if(empty($database)){
+        if (empty($database)) {
             throw new \InvalidArgumentException('Azure DocumentDB Database is missing. Check the service configuration.');
         }
 

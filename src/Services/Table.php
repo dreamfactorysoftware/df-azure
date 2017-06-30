@@ -34,6 +34,10 @@ class Table extends BaseDbService
      * @var string
      */
     protected $defaultPartitionKey = null;
+    /**
+     * @var string
+     */
+    protected $dsn = null;
 
     /**
      * @var array
@@ -67,33 +71,33 @@ class Table extends BaseDbService
     {
         parent::__construct($settings);
 
-        $config = (array)array_get($settings, 'config');
-        Session::replaceLookups( $config, true );
-
-        $dsn = strval(array_get($config, 'connection_string'));
-        if (empty($dsn)) {
-            $name = array_get($config, 'account_name', array_get($config, 'AccountName'));
+        $this->dsn = strval(array_get($this->config, 'connection_string'));
+        if (empty($this->dsn)) {
+            $name = array_get($this->config, 'account_name', array_get($this->config, 'AccountName'));
             if (empty($name)) {
                 throw new \InvalidArgumentException('WindowsAzure account name can not be empty.');
             }
 
-            $key = array_get($config, 'account_key', array_get($config, 'AccountKey'));
+            $key = array_get($this->config, 'account_key', array_get($this->config, 'AccountKey'));
             if (empty($key)) {
                 throw new \InvalidArgumentException('WindowsAzure account key can not be empty.');
             }
 
-            $protocol = array_get($config, 'protocol', 'https');
-            $dsn = "DefaultEndpointsProtocol=$protocol;AccountName=$name;AccountKey=$key";
+            $protocol = array_get($this->config, 'protocol', 'https');
+            $this->dsn = "DefaultEndpointsProtocol=$protocol;AccountName=$name;AccountKey=$key";
         }
 
         // set up a default partition key
-        $partitionKey = array_get($config, static::PARTITION_KEY);
+        $partitionKey = array_get($this->config, static::PARTITION_KEY);
         if (!empty($partitionKey)) {
             $this->defaultPartitionKey = $partitionKey;
         }
+    }
 
+    protected function initializeConnection()
+    {
         try {
-            $this->dbConn = ServicesBuilder::getInstance()->createTableService($dsn);
+            $this->dbConn = ServicesBuilder::getInstance()->createTableService($this->dsn);
             /** @noinspection PhpParamsInspection */
             $this->schema = new AzureTableSchema($this->dbConn);
             $this->schema->setCache($this);
@@ -103,8 +107,6 @@ class Table extends BaseDbService
         }
     }
 
-    /**
-     */
     public function getDefaultPartitionKey()
     {
         return $this->defaultPartitionKey;
