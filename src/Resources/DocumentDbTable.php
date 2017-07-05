@@ -174,9 +174,9 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
             case Verbs::PUT:
             case Verbs::PATCH:
                 if (!empty($update = array_get($extras, 'updates'))) {
-                    foreach ($this->batchIds as $id) {
+                    if (!empty($update)) {
                         $update[static::ID_FIELD] = $id;
-                        $records[] = $update;
+                        $record = $update;
                     }
                 }
 

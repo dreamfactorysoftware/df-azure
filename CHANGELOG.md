@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Fixed
 - DF-1144 Made DELETE behavior consistent across local and all remote file services
+- Fixed: https://github.com/dreamfactorysoftware/azure-documentdb-php-sdk/issues/2
 
 ## [0.10.1] - 2017-06-12
 ### Changed
