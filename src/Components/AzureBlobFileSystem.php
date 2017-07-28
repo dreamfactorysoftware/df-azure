@@ -1,4 +1,5 @@
 <?php
+
 namespace DreamFactory\Core\Azure\Components;
 
 use DreamFactory\Core\Utility\Session;
@@ -9,6 +10,7 @@ use DreamFactory\Core\Exceptions\NotFoundException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use MicrosoftAzure\Storage\Blob\BlobRestProxy;
 use MicrosoftAzure\Storage\Blob\Models\GetBlobOptions;
+use MicrosoftAzure\Storage\Common\ServiceException;
 use MicrosoftAzure\Storage\Common\ServicesBuilder;
 use MicrosoftAzure\Storage\Blob\Models\GetBlobResult;
 use MicrosoftAzure\Storage\Blob\Models\ListBlobsResult;
@@ -16,6 +18,7 @@ use MicrosoftAzure\Storage\Blob\Models\ListBlobsOptions;
 use MicrosoftAzure\Storage\Blob\Models\CreateBlobOptions;
 use MicrosoftAzure\Storage\Blob\Models\CreateContainerOptions;
 use MicrosoftAzure\Storage\Blob\Models\GetBlobPropertiesResult;
+use DreamFactory\Core\Enums\HttpStatusCodes;
 
 /**
  * Class AzureBlobFileSystem
@@ -380,19 +383,26 @@ class AzureBlobFileSystem extends RemoteFileSystem
     /**
      * @param string $container
      * @param string $name
+     * @param bool   $noCheck
      *
      * @return void
      * @throws \Exception
      */
-    public function deleteBlob($container, $name)
+    public function deleteBlob($container, $name, $noCheck = false)
     {
         try {
             $this->checkConnection();
             $this->blobConn->deleteBlob($container, $this->fixBlobName($name));
         } catch (\Exception $ex) {
-            if (false === stripos($ex->getMessage(), 'does not exist')) {
-                throw $ex;
+            if ($ex instanceof ServiceException) {
+                if ($ex->getCode() === HttpStatusCodes::HTTP_NOT_FOUND) {
+                    if ($noCheck) {
+                        return;
+                    }
+                    throw new NotFoundException("File '$name' was not found.'");
+                }
             }
+            throw new DfException('Failed to delete blob "' . $name . '": ' . $ex->getMessage());
         }
     }
 
@@ -523,12 +533,14 @@ class AzureBlobFileSystem extends RemoteFileSystem
                 fpassthru($stream);
             }
         } catch (\Exception $ex) {
-            if ('Resource could not be accessed.' == $ex->getMessage()) {
-                $status_header = "HTTP/1.1 404 The specified file '$blobName' does not exist.";
+            if ($ex instanceof ServiceException) {
+                $code = $ex->getCode();
+                $status_header = "HTTP/1.1 $code";
                 header($status_header);
                 header('Content-Type: text/html');
+                echo 'Failed to stream/download file. File ' . $blobName . ' was not found. ' . $ex->getMessage();
             } else {
-                throw $ex;
+                throw new DfException('Failed to stream blob: ' . $ex->getMessage());
             }
         }
     }
