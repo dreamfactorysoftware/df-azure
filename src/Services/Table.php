@@ -91,6 +91,8 @@ class Table extends BaseDbService
         if (!empty($partitionKey)) {
             $this->defaultPartitionKey = $partitionKey;
         }
+
+        $this->setConfigBasedCachePrefix(array_get($this->config, 'account_name') . ':');
     }
 
     protected function initializeConnection()

@@ -26,6 +26,16 @@ class DocumentDB extends BaseDbService
         ],
     ];
 
+    public function __construct($settings = [])
+    {
+        parent::__construct($settings);
+
+        $uri = array_get($this->config, 'uri');
+        $key = array_get($this->config, 'key');
+        $database = array_get($this->config, 'database');
+        $this->setConfigBasedCachePrefix($uri . $key . $database . ":");
+    }
+
     protected function initializeConnection()
     {
         $uri = array_get($this->config, 'uri');
