@@ -58,7 +58,7 @@ class AzureTableSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function createTable($table, $options)
+    public function createTable($table, $options)
     {
         if (empty($tableName = array_get($table, 'name'))) {
             throw new \Exception("No valid name exist in the received table schema.");
@@ -74,7 +74,7 @@ class AzureTableSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function updateTable($tableSchema, $changes)
+    public function updateTable($tableSchema, $changes)
     {
         // nothing to do here
     }
@@ -92,7 +92,7 @@ class AzureTableSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function createFieldReferences($references)
+    public function createFieldReferences($references)
     {
         // Do nothing here for now
     }
@@ -100,7 +100,7 @@ class AzureTableSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function createFieldIndexes($indexes)
+    public function createFieldIndexes($indexes)
     {
         // Do nothing here for now
     }

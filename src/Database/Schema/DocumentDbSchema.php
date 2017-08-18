@@ -71,7 +71,7 @@ class DocumentDbSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function updateTable($tableSchema, $changes)
+    public function updateTable($tableSchema, $changes)
     {
         $data = ['id' => $tableSchema->quotedName];
         if (!empty($native = array_get($changes, 'native'))) {
@@ -94,7 +94,7 @@ class DocumentDbSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function createFieldReferences($references)
+    public function createFieldReferences($references)
     {
         // Do nothing here for now
     }
@@ -102,7 +102,7 @@ class DocumentDbSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function createFieldIndexes($indexes)
+    public function createFieldIndexes($indexes)
     {
         // Do nothing here for now
     }

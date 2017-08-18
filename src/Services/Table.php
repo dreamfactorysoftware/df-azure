@@ -6,7 +6,6 @@ use DreamFactory\Core\Azure\Resources\Table as TableResource;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Database\Resources\DbSchemaResource;
 use DreamFactory\Core\Database\Services\BaseDbService;
-use DreamFactory\Core\Utility\Session;
 use MicrosoftAzure\Storage\Common\ServicesBuilder;
 
 /**
@@ -92,6 +91,8 @@ class Table extends BaseDbService
         if (!empty($partitionKey)) {
             $this->defaultPartitionKey = $partitionKey;
         }
+
+        $this->setConfigBasedCachePrefix(array_get($this->config, 'account_name') . ':');
     }
 
     protected function initializeConnection()
@@ -100,8 +101,6 @@ class Table extends BaseDbService
             $this->dbConn = ServicesBuilder::getInstance()->createTableService($this->dsn);
             /** @noinspection PhpParamsInspection */
             $this->schema = new AzureTableSchema($this->dbConn);
-            $this->schema->setCache($this);
-            $this->schema->setExtraStore($this);
         } catch (\Exception $ex) {
             throw new InternalServerErrorException("Windows Azure Table Service Exception:\n{$ex->getMessage()}");
         }

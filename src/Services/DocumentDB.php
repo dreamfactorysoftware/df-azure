@@ -7,7 +7,6 @@ use DreamFactory\Core\Azure\Database\Schema\DocumentDbSchema;
 use DreamFactory\Core\Azure\Resources\DocumentDbTable;
 use DreamFactory\Core\Database\Resources\DbSchemaResource;
 use DreamFactory\Core\Database\Services\BaseDbService;
-use DreamFactory\Core\Utility\Session;
 
 class DocumentDB extends BaseDbService
 {
@@ -26,6 +25,16 @@ class DocumentDB extends BaseDbService
             'label'      => 'Table',
         ],
     ];
+
+    public function __construct($settings = [])
+    {
+        parent::__construct($settings);
+
+        $uri = array_get($this->config, 'uri');
+        $key = array_get($this->config, 'key');
+        $database = array_get($this->config, 'database');
+        $this->setConfigBasedCachePrefix($uri . $key . $database . ":");
+    }
 
     protected function initializeConnection()
     {
@@ -46,7 +55,5 @@ class DocumentDB extends BaseDbService
         $this->dbConn = new DocumentDBConnection($uri, $key, $database);
         /** @noinspection PhpParamsInspection */
         $this->schema = new DocumentDbSchema($this->dbConn);
-        $this->schema->setCache($this);
-        $this->schema->setExtraStore($this);
     }
 }
