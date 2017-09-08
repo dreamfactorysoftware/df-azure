@@ -3,27 +3,34 @@
 namespace DreamFactory\Core\Azure\Resources;
 
 use DreamFactory\Core\Azure\Components\DocumentDBConnection;
-use DreamFactory\Core\Exceptions\DfException;
-use DreamFactory\Core\Utility\ResourcesWrapper;
-use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use DreamFactory\Core\Azure\Components\DocumentDBConnection as Conn;
 use DreamFactory\Core\Azure\Services\DocumentDB;
+use DreamFactory\Core\Database\Resources\BaseNoSqlDbTableResource;
+use DreamFactory\Core\Database\Schema\ColumnSchema;
 use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\Enums\HttpStatusCodes;
-use DreamFactory\Core\Exceptions\NotFoundException;
-use DreamFactory\Core\Exceptions\RestException;
-use DreamFactory\Core\Database\Resources\BaseNoSqlDbTableResource;
-use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Enums\DbLogicalOperators;
 use DreamFactory\Core\Enums\DbComparisonOperators;
-use DreamFactory\Core\Exceptions\ForbiddenException;
-use DreamFactory\Core\Database\Schema\ColumnSchema;
 use DreamFactory\Core\Enums\Verbs;
+use DreamFactory\Core\Exceptions\BadRequestException;
+use DreamFactory\Core\Exceptions\DfException;
+use DreamFactory\Core\Exceptions\ForbiddenException;
+use DreamFactory\Core\Exceptions\InternalServerErrorException;
+use DreamFactory\Core\Exceptions\NotFoundException;
+use DreamFactory\Core\Exceptions\RestException;
+use DreamFactory\Core\Utility\ResourcesWrapper;
 
 class DocumentDbTable extends BaseNoSqlDbTableResource
 {
+    //*************************************************************************
+    //	Constants
+    //*************************************************************************
+
     /** ID Field */
     const ID_FIELD = 'id';
+
+    //*************************************************************************
+    //	Members
+    //*************************************************************************
 
     /**
      * @var null|DocumentDB
