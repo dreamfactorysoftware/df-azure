@@ -2,12 +2,12 @@
 
 namespace DreamFactory\Core\Azure\Models;
 
-use DreamFactory\Core\Database\Components\SupportsUpsert;
+use DreamFactory\Core\Database\Components\SupportsUpsertAndCache;
 use DreamFactory\Core\Models\BaseServiceConfigModel;
 
 class DocumentDbConfig extends BaseServiceConfigModel
 {
-    use SupportsUpsert;
+    use SupportsUpsertAndCache;
 
     /** @var string  */
     protected $table = 'documentdb_config';

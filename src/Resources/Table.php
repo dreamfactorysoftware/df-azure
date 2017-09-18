@@ -1,15 +1,15 @@
 <?php
 namespace DreamFactory\Core\Azure\Resources;
 
+use DreamFactory\Core\Azure\Services\Table as TableService;
+use DreamFactory\Core\Database\Resources\BaseNoSqlDbTableResource;
 use DreamFactory\Core\Database\Schema\ColumnSchema;
 use DreamFactory\Core\Enums\ApiOptions;
-use DreamFactory\Core\Database\Resources\BaseNoSqlDbTableResource;
 use DreamFactory\Core\Enums\DbSimpleTypes;
-use DreamFactory\Core\Utility\Session;
 use DreamFactory\Core\Enums\Verbs;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use DreamFactory\Core\Azure\Services\Table as TableService;
+use DreamFactory\Core\Utility\Session;
 use MicrosoftAzure\Storage\Common\ServiceException;
 use MicrosoftAzure\Storage\Table\Models\BatchError;
 use MicrosoftAzure\Storage\Table\Models\BatchOperations;
