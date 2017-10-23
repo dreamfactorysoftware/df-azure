@@ -43,4 +43,22 @@ class FileServiceAzureBlobTest extends \DreamFactory\Core\Testing\FileServiceTes
         //Azure blob service returns 409 (already exists) if the resource already exists
         $this->assertEquals(1, 1);
     }
+
+    public function testPOSTZipFileFromUrlWithExtractAndClean()
+    {
+        $rs = $this->makeRequest(
+            Verbs::POST,
+            static::FOLDER_1 . '/f2/',
+            ['url' => 'http://' . static::LOCAL_HOST . '/testfiles.zip', 'extract' => 'true', 'clean' => 'true']
+        );
+        $content = json_encode($rs->getContent(), JSON_UNESCAPED_SLASHES);
+
+        $this->assertEquals('{"name":"' .
+            static::FOLDER_1 .
+            '/f2","path":"' .
+            static::FOLDER_1 .
+            '/f2/"}',
+            $content);
+        $this->makeRequest(Verbs::DELETE, static::FOLDER_1 . '/', ['force' => 1]);
+    }
 }
