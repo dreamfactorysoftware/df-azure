@@ -278,6 +278,9 @@ class AzureBlobFileSystem extends RemoteFileSystem
         try {
             $this->checkConnection();
             $name = $this->fixBlobName($name);
+            if (empty($name)) {
+                return false;
+            }
             $this->blobConn->getBlobProperties($container, $name);
 
             return true;
