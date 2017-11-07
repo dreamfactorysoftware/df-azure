@@ -49,7 +49,7 @@ class FileServiceAzureBlobTest extends \DreamFactory\Core\Testing\FileServiceTes
         $rs = $this->makeRequest(
             Verbs::POST,
             static::FOLDER_1 . '/f2/',
-            ['url' => 'http://' . static::LOCAL_HOST . '/testfiles.zip', 'extract' => 'true', 'clean' => 'true']
+            ['url' => $this->getBaseUrl() . '/testfiles.zip', 'extract' => 'true', 'clean' => 'true']
         );
         $content = json_encode($rs->getContent(), JSON_UNESCAPED_SLASHES);
 
