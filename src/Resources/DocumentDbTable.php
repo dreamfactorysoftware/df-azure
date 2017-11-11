@@ -92,7 +92,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
     {
         $fields = array_get($extras, ApiOptions::FIELDS);
         $includeCounts = array_get_bool($extras, ApiOptions::INCLUDE_COUNT);
-        $limit = array_get($extras, 'limit', static::getMaxRecordsReturnedLimit());
+        $limit = array_get($extras, 'limit', $this->getMaxRecordsReturnedLimit());
         $orderBy = $this->cleanOrderBy($table, array_get($extras, 'order_by'));
 
         if (empty($filter)) {
