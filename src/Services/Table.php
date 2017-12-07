@@ -4,7 +4,6 @@ namespace DreamFactory\Core\Azure\Services;
 use DreamFactory\Core\Azure\Database\Schema\AzureTableSchema;
 use DreamFactory\Core\Azure\Resources\Table as TableResource;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use DreamFactory\Core\Database\Resources\DbSchemaResource;
 use DreamFactory\Core\Database\Services\BaseDbService;
 use MicrosoftAzure\Storage\Common\ServicesBuilder;
 
@@ -37,22 +36,6 @@ class Table extends BaseDbService
      * @var string
      */
     protected $dsn = null;
-
-    /**
-     * @var array
-     */
-    protected static $resources = [
-        DbSchemaResource::RESOURCE_NAME        => [
-            'name'       => DbSchemaResource::RESOURCE_NAME,
-            'class_name' => DbSchemaResource::class,
-            'label'      => 'Schema',
-        ],
-        TableResource::RESOURCE_NAME => [
-            'name'       => TableResource::RESOURCE_NAME,
-            'class_name' => TableResource::class,
-            'label'      => 'Table',
-        ],
-    ];
 
     //*************************************************************************
     //	Methods
@@ -93,6 +76,19 @@ class Table extends BaseDbService
         }
 
         $this->setConfigBasedCachePrefix(array_get($this->config, 'account_name') . ':');
+    }
+
+    public function getResourceHandlers()
+    {
+        $handlers = parent::getResourceHandlers();
+
+        $handlers[TableResource::RESOURCE_NAME] = [
+            'name'       => TableResource::RESOURCE_NAME,
+            'class_name' => TableResource::class,
+            'label'      => 'Table',
+        ];
+
+        return $handlers;
     }
 
     protected function initializeConnection()
