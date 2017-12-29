@@ -1,9 +1,9 @@
 <?php
 namespace DreamFactory\Core\Azure\Models;
 
-use DreamFactory\Core\Database\Components\SupportsUpsertAndCache;
+use DreamFactory\Core\Database\Components\SupportsExtraDbConfigs;
 
 class TableConfig extends AzureConfig
 {
-    use SupportsUpsertAndCache;
+    use SupportsExtraDbConfigs;
 }
