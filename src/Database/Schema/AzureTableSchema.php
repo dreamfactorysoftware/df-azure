@@ -2,6 +2,7 @@
 namespace DreamFactory\Core\Azure\Database\Schema;
 
 use DreamFactory\Core\Database\Components\Schema;
+use DreamFactory\Core\Database\Schema\ColumnSchema;
 use DreamFactory\Core\Database\Schema\TableSchema;
 use MicrosoftAzure\Storage\Table\Models\QueryTablesResult;
 use MicrosoftAzure\Storage\Table\TableRestProxy;
@@ -19,30 +20,31 @@ class AzureTableSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function findColumns(TableSchema $table)
+    protected function loadTableColumns(TableSchema $table)
     {
-        $columns = [
-            [
-                'name'           => 'PartitionKey',
-                'db_type'        => 'string',
-                'is_primary_key' => true,
-                'auto_increment' => true,
-            ],
-            [
-                'name'           => 'RowKey',
-                'db_type'        => 'string',
-                'is_primary_key' => true,
-                'auto_increment' => true,
-            ]
-        ];
-
-        return $columns;
+        $table->primaryKey = ['PartitionKey','RowKey'];
+        $c = new ColumnSchema([
+            'name'           => 'PartitionKey',
+            'db_type'        => 'string',
+            'is_primary_key' => true,
+            'auto_increment' => true,
+        ]);
+        $c->quotedName = $this->quoteColumnName($c->name);
+        $table->addColumn($c);
+        $c = new ColumnSchema([
+            'name'           => 'RowKey',
+            'db_type'        => 'string',
+            'is_primary_key' => true,
+            'auto_increment' => true,
+        ]);
+        $c->quotedName = $this->quoteColumnName($c->name);
+        $table->addColumn($c);
     }
 
     /**
      * @inheritdoc
      */
-    protected function findTableNames($schema = '')
+    protected function getTableNames($schema = '')
     {
         $tables = [];
         /** @var QueryTablesResult $result */

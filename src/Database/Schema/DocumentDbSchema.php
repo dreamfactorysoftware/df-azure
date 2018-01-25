@@ -2,6 +2,7 @@
 namespace DreamFactory\Core\Azure\Database\Schema;
 
 use DreamFactory\Core\Database\Components\Schema;
+use DreamFactory\Core\Database\Schema\ColumnSchema;
 use DreamFactory\Core\Database\Schema\TableSchema;
 
 /**
@@ -17,25 +18,24 @@ class DocumentDbSchema extends Schema
     /**
      * @inheritdoc
      */
-    protected function findColumns(TableSchema $table)
+    protected function loadTableColumns(TableSchema $table)
     {
         $table->native = $this->connection->getCollection($table->name);
-        $columns = [
-            [
-                'name'           => 'id',
-                'db_type'        => 'string',
-                'is_primary_key' => true,
-                'auto_increment' => false,
-            ]
-        ];
-
-        return $columns;
+        $table->addPrimaryKey('id');
+        $c = new ColumnSchema([
+            'name'           => 'id',
+            'db_type'        => 'string',
+            'is_primary_key' => true,
+            'auto_increment' => false,
+        ]);
+        $c->quotedName = $this->quoteColumnName($c->name);
+        $table->addColumn($c);
     }
 
     /**
      * @inheritdoc
      */
-    protected function findTableNames($schema = '')
+    protected function getTableNames($schema = '')
     {
         $tables = [];
         $collections = $this->connection->listCollections();
