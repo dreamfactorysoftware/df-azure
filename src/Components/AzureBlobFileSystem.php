@@ -108,8 +108,13 @@ class AzureBlobFileSystem extends RemoteFileSystem
      */
     private function fixBlobName($name)
     {
-        // doesn't like spaces in the name, anything else?
-        return str_replace(' ', '%20', $name);
+
+        // At some point the azure-storage
+        // package started encoding blob names, causing double-encoding
+        // to occur. So the encoding functionality previously found
+        // here has been deleted.
+        return $name;
+
     }
 
     /**
