@@ -28,8 +28,8 @@
     "wiki":   "https://wiki.dreamfactory.com"
   },
   "require":     {
-    "dreamfactory/df-database":              "~0.9.4",
-    "dreamfactory/df-file":                  "~0.6.3",
+    "dreamfactory/df-database":              "dev-laravel-upgrade",
+    "dreamfactory/df-file":                  "dev-laravel-upgrade",
     "microsoft/azure-storage":               "0.13.*",
     "dreamfactory/azure-documentdb-php-sdk": "~0.2.0"
   },
