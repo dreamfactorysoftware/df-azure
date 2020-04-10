@@ -30,7 +30,7 @@
   "minimum-stability": "dev",
   "prefer-stable":     true,
   "require":     {
-    "dreamfactory/df-database":              "~0.11.0",
+    "dreamfactory/df-database":              "~0.11.2",
     "dreamfactory/df-file":                  "~0.7.1",
     "microsoft/azure-storage":               "0.13.*",
     "dreamfactory/azure-documentdb-php-sdk": "~0.2.0"
