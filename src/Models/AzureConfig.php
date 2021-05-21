@@ -39,12 +39,15 @@ class AzureConfig extends BaseServiceConfigModel
                     ['label' => 'HTTPS', 'name' => 'https'],
                 ];
                 $schema['description'] = 'Select the HTTP protocol.';
+                $schema['display'] = 'true';
                 break;
             case 'account_name':
                 $schema['description'] = 'A Windows Azure storage account name.';
+                $schema['display'] = 'true';
                 break;
             case 'account_key':
                 $schema['description'] = 'A Windows Azure storage account key.';
+                $schema['display'] = 'true';
                 break;
         }
     }
