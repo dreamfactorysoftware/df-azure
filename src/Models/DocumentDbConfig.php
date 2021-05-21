@@ -38,12 +38,15 @@ class DocumentDbConfig extends BaseServiceConfigModel
             case 'uri':
                 $schema['label'] = 'URI';
                 $schema['description'] = 'Azure DocumentDB endpoint.';
+                $schema['display'] = 'true';
                 break;
             case 'key':
                 $schema['description'] = 'Azure DocumentDB key.';
+                $schema['display'] = 'true';
                 break;
             case 'database':
                 $schema['description'] = 'Azure DocumentDB database';
+                $schema['display'] = 'true';
                 break;
         }
     }
