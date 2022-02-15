@@ -286,9 +286,15 @@ class AzureBlobFileSystem extends RemoteFileSystem
             if (empty($name)) {
                 return false;
             }
-            $this->blobConn->getBlobProperties($container, $name);
 
-            return true;
+            $listBlobsOptions = new ListBlobsOptions();
+            $listBlobsOptions->setPrefix($name);
+            $result = $this->blobConn->listBlobs($container, $listBlobsOptions);
+
+            if (count($result->getBlobs()) !== 0) {
+                return true;
+            }
+
         } catch (\Exception $ex) {
             if (false === stripos($ex->getMessage(), 'does not exist')) {
                 throw $ex;
