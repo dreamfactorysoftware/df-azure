@@ -6,6 +6,7 @@ use DreamFactory\Core\Azure\Components\DocumentDBConnection;
 use DreamFactory\Core\Azure\Database\Schema\DocumentDbSchema;
 use DreamFactory\Core\Azure\Resources\DocumentDbTable;
 use DreamFactory\Core\Database\Services\BaseDbService;
+use Illuminate\Support\Arr;
 
 class DocumentDB extends BaseDbService
 {
@@ -13,9 +14,9 @@ class DocumentDB extends BaseDbService
     {
         parent::__construct($settings);
 
-        $uri = array_get($this->config, 'uri');
-        $key = array_get($this->config, 'key');
-        $database = array_get($this->config, 'database');
+        $uri = Arr::get($this->config, 'uri');
+        $key = Arr::get($this->config, 'key');
+        $database = Arr::get($this->config, 'database');
         $this->setConfigBasedCachePrefix($uri . $key . $database . ":");
     }
 
@@ -34,9 +35,9 @@ class DocumentDB extends BaseDbService
 
     protected function initializeConnection()
     {
-        $uri = array_get($this->config, 'uri');
-        $key = array_get($this->config, 'key');
-        $database = array_get($this->config, 'database');
+        $uri = Arr::get($this->config, 'uri');
+        $key = Arr::get($this->config, 'key');
+        $database = Arr::get($this->config, 'database');
 
         if (empty($uri)) {
             throw new \InvalidArgumentException('Azure DocumentDB URI is missing. Check the service configuration.');

@@ -3,9 +3,11 @@ namespace DreamFactory\Core\Azure\Services;
 
 use DreamFactory\Core\Azure\Database\Schema\AzureTableSchema;
 use DreamFactory\Core\Azure\Resources\Table as TableResource;
+use DreamFactory\Core\Database\Resources\BaseDbTableResource;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Database\Services\BaseDbService;
-use MicrosoftAzure\Storage\Common\ServicesBuilder;
+use MicrosoftAzure\Storage\Table\TableRestProxy;
+use Illuminate\Support\Arr;
 
 /**
  * Table
@@ -53,29 +55,29 @@ class Table extends BaseDbService
     {
         parent::__construct($settings);
 
-        $this->dsn = strval(array_get($this->config, 'connection_string'));
+        $this->dsn = strval(Arr::get($this->config, 'connection_string'));
         if (empty($this->dsn)) {
-            $name = array_get($this->config, 'account_name', array_get($this->config, 'AccountName'));
+            $name = Arr::get($this->config, 'account_name', Arr::get($this->config, 'AccountName'));
             if (empty($name)) {
                 throw new \InvalidArgumentException('WindowsAzure account name can not be empty.');
             }
 
-            $key = array_get($this->config, 'account_key', array_get($this->config, 'AccountKey'));
+            $key = Arr::get($this->config, 'account_key', Arr::get($this->config, 'AccountKey'));
             if (empty($key)) {
                 throw new \InvalidArgumentException('WindowsAzure account key can not be empty.');
             }
 
-            $protocol = array_get($this->config, 'protocol', 'https');
-            $this->dsn = "DefaultEndpointsProtocol=$protocol;AccountName=$name;AccountKey=$key";
+            $protocol = Arr::get($this->config, 'protocol', 'https');
+            $this->dsn = "DefaultEndpointsProtocol=$protocol;AccountName=$name;AccountKey=$key;TableEndpoint=https://$name.table.cosmos.azure.com:443/";
         }
 
         // set up a default partition key
-        $partitionKey = array_get($this->config, static::PARTITION_KEY);
+        $partitionKey = Arr::get($this->config, static::PARTITION_KEY);
         if (!empty($partitionKey)) {
             $this->defaultPartitionKey = $partitionKey;
         }
 
-        $this->setConfigBasedCachePrefix(array_get($this->config, 'account_name') . ':');
+        $this->setConfigBasedCachePrefix(Arr::get($this->config, 'account_name') . ':');
     }
 
     public function getResourceHandlers()
@@ -94,7 +96,7 @@ class Table extends BaseDbService
     protected function initializeConnection()
     {
         try {
-            $this->dbConn = ServicesBuilder::getInstance()->createTableService($this->dsn);
+            $this->dbConn = TableRestProxy::createTableService($this->dsn);
             /** @noinspection PhpParamsInspection */
             $this->schema = new AzureTableSchema($this->dbConn);
         } catch (\Exception $ex) {

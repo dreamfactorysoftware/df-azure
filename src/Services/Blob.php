@@ -4,6 +4,7 @@ namespace DreamFactory\Core\Azure\Services;
 use DreamFactory\Core\File\Services\RemoteFileService;
 use DreamFactory\Core\Azure\Components\AzureBlobFileSystem;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
+use Illuminate\Support\Arr;
 
 /**
  * Class Blob
@@ -17,7 +18,7 @@ class Blob extends RemoteFileService
      */
     public function setDriver($config)
     {
-        $this->container = array_get($config, 'container');
+        $this->container = Arr::get($config, 'container');
 
         if (empty($this->container)) {
             throw new InternalServerErrorException('Azure blob container not specified. Please check configuration for file service - ' .

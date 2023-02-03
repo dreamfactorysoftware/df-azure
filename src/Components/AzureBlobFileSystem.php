@@ -9,16 +9,17 @@ use DreamFactory\Core\Exceptions\DfException;
 use DreamFactory\Core\Exceptions\NotFoundException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use MicrosoftAzure\Storage\Blob\BlobRestProxy;
+use MicrosoftAzure\Storage\Blob\Models\CreateBlockBlobOptions;
 use MicrosoftAzure\Storage\Blob\Models\GetBlobOptions;
 use MicrosoftAzure\Storage\Common\ServiceException;
-use MicrosoftAzure\Storage\Common\ServicesBuilder;
 use MicrosoftAzure\Storage\Blob\Models\GetBlobResult;
 use MicrosoftAzure\Storage\Blob\Models\ListBlobsResult;
 use MicrosoftAzure\Storage\Blob\Models\ListBlobsOptions;
-use MicrosoftAzure\Storage\Blob\Models\CreateBlobOptions;
 use MicrosoftAzure\Storage\Blob\Models\CreateContainerOptions;
 use MicrosoftAzure\Storage\Blob\Models\GetBlobPropertiesResult;
+use MicrosoftAzure\Storage\Common\Models\Range;
 use DreamFactory\Core\Enums\HttpStatusCodes;
+use Illuminate\Support\Arr;
 
 /**
  * Class AzureBlobFileSystem
@@ -62,28 +63,28 @@ class AzureBlobFileSystem extends RemoteFileSystem
     public function __construct($config)
     {
         $credentials = $config;
-        $this->container = array_get($config, 'container');
+        $this->container = Arr::get($config, 'container');
 
         Session::replaceLookups($credentials, true);
 
-        $connectionString = array_get($credentials, 'connection_string');
+        $connectionString = Arr::get($credentials, 'connection_string');
         if (empty($connectionString)) {
-            $name = array_get($credentials, 'account_name', array_get($credentials, 'AccountName'));
+            $name = Arr::get($credentials, 'account_name', Arr::get($credentials, 'AccountName'));
             if (empty($name)) {
                 throw new InvalidArgumentException('WindowsAzure account name can not be empty.');
             }
 
-            $key = array_get($credentials, 'account_key', array_get($credentials, 'AccountKey'));
+            $key = Arr::get($credentials, 'account_key', Arr::get($credentials, 'AccountKey'));
             if (empty($key)) {
                 throw new InvalidArgumentException('WindowsAzure account key can not be empty.');
             }
 
-            $protocol = array_get($credentials, 'protocol', 'https');
+            $protocol = Arr::get($credentials, 'protocol', 'https');
             $connectionString = "DefaultEndpointsProtocol=$protocol;AccountName=$name;AccountKey=$key";
         }
 
         try {
-            $this->blobConn = ServicesBuilder::getInstance()->createBlobService($connectionString);
+            $this->blobConn = BlobRestProxy::createBlobService($connectionString);
 
             if (!$this->containerExists($this->container)) {
                 $this->createContainer(['name' => $this->container]);
@@ -217,7 +218,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
     {
         $this->checkConnection();
 
-        $name = array_get($properties, 'name', array_get($properties, 'path'));
+        $name = Arr::get($properties, 'name', Arr::get($properties, 'path'));
         if (empty($name)) {
             throw new DfException('No name found for container in create request.');
         }
@@ -316,7 +317,7 @@ class AzureBlobFileSystem extends RemoteFileSystem
     {
         $this->checkConnection();
 
-        $options = new CreateBlobOptions();
+        $options = new CreateBlockBlobOptions();
 
         if (!empty($type)) {
             $options->setContentType($type);
@@ -505,57 +506,27 @@ class AzureBlobFileSystem extends RemoteFileSystem
         return $file;
     }
 
-    /**
-     * @param string $container
-     * @param string $blobName
-     * @param array  $params
-     *
-     * @throws \Exception
-     * @return void
-     */
-    public function streamBlob($container, $blobName, $params = [])
+    protected function getBlobInChunks($container, $name, $chunkSize): \Generator
     {
         try {
             $this->checkConnection();
-            ///** @var GetBlobResult $blob */
-            //$blob = $this->blobConn->getBlob($container, $blobName);
-            $props = $this->blobConn->getBlobProperties($container, $blobName)->getProperties();
+
+            $props = $this->blobConn->getBlobProperties($container, $name)->getProperties();
             $size = $props->getContentLength();
-            $chunk = \Config::get('df.file_chunk_size');
             $index = 0;
 
-            header('Last-Modified: ' . gmdate(static::TIMESTAMP_FORMAT, $props->getLastModified()->getTimestamp()));
-            header('Content-Type: ' . $props->getContentType());
-            header('Content-Transfer-Encoding: ' . $props->getContentEncoding());
-            header('Content-Length:' . $size);
-
-            $disposition =
-                (isset($params['disposition']) && !empty($params['disposition'])) ? $params['disposition'] : 'inline';
-
-            header("Content-Disposition: $disposition; filename=\"$blobName\";");
-            ob_clean();
-
             while ($index < $size) {
+                $range = new Range($index, $index + $chunkSize - 1);
                 $option = new GetBlobOptions();
-                $option->setRangeStart($index);
-                $option->setRangeEnd($index + $chunk - 1);
-                $blob = $this->blobConn->getBlob($container, $blobName, $option);
+                $option->setRange($range);
+                $blob = $this->blobConn->getBlob($container, $name, $option);
                 $stream = $blob->getContentStream();
                 $length = $blob->getProperties()->getContentLength();
                 $index += $length;
-                flush();
-                fpassthru($stream);
+                yield stream_get_contents($stream);
             }
         } catch (\Exception $ex) {
-            if ($ex instanceof ServiceException) {
-                $code = $ex->getCode();
-                $status_header = "HTTP/1.1 $code";
-                header($status_header);
-                header('Content-Type: text/html');
-                echo 'Failed to stream/download file. File ' . $blobName . ' was not found. ' . $ex->getMessage();
-            } else {
-                throw new DfException('Failed to stream blob: ' . $ex->getMessage());
-            }
+            throw new DfException('Failed to stream blob: ' . $ex->getMessage());
         }
     }
 }

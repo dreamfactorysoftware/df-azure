@@ -4,6 +4,7 @@ namespace DreamFactory\Core\Azure\Database\Schema;
 use DreamFactory\Core\Database\Components\Schema;
 use DreamFactory\Core\Database\Schema\ColumnSchema;
 use DreamFactory\Core\Database\Schema\TableSchema;
+use Illuminate\Support\Arr;
 
 /**
  * Schema is the class for retrieving metadata information from a MongoDB database (version 4.1.x and 5.x).
@@ -51,12 +52,12 @@ class DocumentDbSchema extends Schema
      */
     public function createTable($table, $options)
     {
-        if (empty($tableName = array_get($table, 'name'))) {
+        if (empty($tableName = Arr::get($table, 'name'))) {
             throw new \Exception("No valid name exist in the received table schema.");
         }
 
         $data = ['id' => $tableName];
-        if (!empty($native = array_get($table, 'native'))) {
+        if (!empty($native = Arr::get($table, 'native'))) {
             if (isset($native['indexingPolicy'])) {
                 $data['indexingPolicy'] = $native['indexingPolicy'];
             }
@@ -74,7 +75,7 @@ class DocumentDbSchema extends Schema
     public function updateTable($tableSchema, $changes)
     {
         $data = ['id' => $tableSchema->quotedName];
-        if (!empty($native = array_get($changes, 'native'))) {
+        if (!empty($native = Arr::get($changes, 'native'))) {
             if (isset($native['indexingPolicy'])) {
                 $data['indexingPolicy'] = $native['indexingPolicy'];
             }
