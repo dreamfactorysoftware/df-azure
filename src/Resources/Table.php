@@ -24,6 +24,7 @@ use MicrosoftAzure\Storage\Table\Models\QueryEntitiesOptions;
 use MicrosoftAzure\Storage\Table\Models\QueryEntitiesResult;
 use MicrosoftAzure\Storage\Table\Models\UpdateEntityResult;
 use MicrosoftAzure\Storage\Table\TableRestProxy;
+use Illuminate\Support\Arr;
 
 class Table extends BaseNoSqlDbTableResource
 {
@@ -88,8 +89,8 @@ class Table extends BaseNoSqlDbTableResource
     {
         $record = static::validateAsArray($record, null, false, 'There are no fields in the record.');
 
-        $fields = array_get($extras, ApiOptions::FIELDS);
-        $ssFilters = array_get($extras, 'ss_filters');
+        $fields = Arr::get($extras, ApiOptions::FIELDS);
+        $ssFilters = Arr::get($extras, 'ss_filters');
         try {
             // parse filter
             $filter = static::buildCriteriaArray($filter, $params, $ssFilters);
@@ -115,8 +116,8 @@ class Table extends BaseNoSqlDbTableResource
     {
         $record = static::validateAsArray($record, null, false, 'There are no fields in the record.');
 
-        $fields = array_get($extras, ApiOptions::FIELDS);
-        $ssFilters = array_get($extras, 'ss_filters');
+        $fields = Arr::get($extras, ApiOptions::FIELDS);
+        $ssFilters = Arr::get($extras, 'ss_filters');
         try {
             // parse filter
             $filter = static::buildCriteriaArray($filter, $params, $ssFilters);
@@ -153,8 +154,8 @@ class Table extends BaseNoSqlDbTableResource
             throw new BadRequestException("Filter for delete request can not be empty.");
         }
 
-        $fields = array_get($extras, ApiOptions::FIELDS);
-        $ssFilters = array_get($extras, 'ss_filters');
+        $fields = Arr::get($extras, ApiOptions::FIELDS);
+        $ssFilters = Arr::get($extras, 'ss_filters');
         try {
             $filter = static::buildCriteriaArray($filter, $params, $ssFilters);
             /** @var Entity[] $entities */
@@ -178,8 +179,8 @@ class Table extends BaseNoSqlDbTableResource
      */
     public function retrieveRecordsByFilter($table, $filter = null, $params = [], $extras = [])
     {
-        $fields = array_get($extras, ApiOptions::FIELDS);
-        $ssFilters = array_get($extras, 'ss_filters');
+        $fields = Arr::get($extras, ApiOptions::FIELDS);
+        $ssFilters = Arr::get($extras, 'ss_filters');
 
         $options = new QueryEntitiesOptions();
         $options->setSelectFields([]);
@@ -188,7 +189,7 @@ class Table extends BaseNoSqlDbTableResource
             $options->setSelectFields($fields);
         }
 
-        $limit = intval(array_get($extras, ApiOptions::LIMIT, 0));
+        $limit = intval(Arr::get($extras, ApiOptions::LIMIT, 0));
         if ($limit > 0) {
             $options->setTop($limit);
         }
@@ -245,7 +246,7 @@ class Table extends BaseNoSqlDbTableResource
             $options->setSelectFields($fields);
         }
 
-        $limit = intval(array_get($extras, ApiOptions::LIMIT, 0));
+        $limit = intval(Arr::get($extras, ApiOptions::LIMIT, 0));
         if ($limit > 0) {
             $options->setTop($limit);
         }
@@ -418,12 +419,12 @@ class Table extends BaseNoSqlDbTableResource
         }
 
         // build the server side criteria
-        $filters = array_get($ss_filters, 'filters');
+        $filters = Arr::get($ss_filters, 'filters');
         if (empty($filters)) {
             return '';
         }
 
-        $combiner = array_get($ss_filters, 'filter_op', 'and');
+        $combiner = Arr::get($ss_filters, 'filter_op', 'and');
         switch (strtoupper($combiner)) {
             case 'AND':
             case 'OR':
@@ -435,14 +436,14 @@ class Table extends BaseNoSqlDbTableResource
 
         $criteria = '';
         foreach ($filters as $filter) {
-            $name = array_get($filter, 'name');
-            $op = array_get($filter, 'operator');
+            $name = Arr::get($filter, 'name');
+            $op = Arr::get($filter, 'operator');
             if (empty($name) || empty($op)) {
                 // log and bail
                 throw new InternalServerErrorException('Invalid server-side filter configuration detected.');
             }
 
-            $value = array_get($filter, 'value');
+            $value = Arr::get($filter, 'value');
             $value = static::interpretFilterValue($value);
 
             $temp = static::parseFilter("$name $op $value");
@@ -563,7 +564,7 @@ class Table extends BaseNoSqlDbTableResource
                 $info = $ids_info[0];
                 $name = $info->getName(true);
                 if (is_array($record)) {
-                    $value = array_get($record, $name);
+                    $value = Arr::get($record, $name);
                     if ($remove) {
                         unset($record[$name]);
                     }
@@ -582,7 +583,7 @@ class Table extends BaseNoSqlDbTableResource
                     $id = $value;
                 } else {
                     // could be passed in as a parameter affecting all records
-                    $param = array_get($extras, $name);
+                    $param = Arr::get($extras, $name);
                     if ($on_create && $info->getRequired() && empty($param)) {
                         return false;
                     }
@@ -592,7 +593,7 @@ class Table extends BaseNoSqlDbTableResource
                 foreach ($ids_info as $info) {
                     $name = $info->getName(true);
                     if (is_array($record)) {
-                        $value = array_get($record, $name);
+                        $value = Arr::get($record, $name);
                         if ($remove) {
                             unset($record[$name]);
                         }
@@ -611,7 +612,7 @@ class Table extends BaseNoSqlDbTableResource
                         $id[$name] = $value;
                     } else {
                         // could be passed in as a parameter affecting all records
-                        $param = array_get($extras, $name);
+                        $param = Arr::get($extras, $name);
                         if ($on_create && $info->getRequired() && empty($param)) {
                             if (!is_array($record) && (static::ROW_KEY == $name)) {
                                 $id[$name] = $record;
@@ -655,11 +656,11 @@ class Table extends BaseNoSqlDbTableResource
         $continue = false,
         $single = false
     ) {
-        $ssFilters = array_get($extras, 'ss_filters');
-        $fields = array_get($extras, ApiOptions::FIELDS);
-        $requireMore = array_get($extras, 'require_more');
-        $updates = array_get($extras, 'updates');
-        $partitionKey = array_get($extras, static::PARTITION_KEY);
+        $ssFilters = Arr::get($extras, 'ss_filters');
+        $fields = Arr::get($extras, ApiOptions::FIELDS);
+        $requireMore = Arr::get($extras, 'require_more');
+        $updates = Arr::get($extras, 'updates');
+        $partitionKey = Arr::get($extras, static::PARTITION_KEY);
 
         if (!is_array($id)) {
             $id = [static::ROW_KEY => $id, static::PARTITION_KEY => $partitionKey];
@@ -844,8 +845,8 @@ class Table extends BaseNoSqlDbTableResource
             return null;
         }
 
-        $fields = array_get($extras, ApiOptions::FIELDS);
-        $partitionKey = array_get($extras, static::PARTITION_KEY);
+        $fields = Arr::get($extras, ApiOptions::FIELDS);
+        $partitionKey = Arr::get($extras, static::PARTITION_KEY);
 
         $out = [];
         switch ($this->getAction()) {

@@ -18,6 +18,7 @@ use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Exceptions\NotFoundException;
 use DreamFactory\Core\Exceptions\RestException;
 use DreamFactory\Core\Utility\ResourcesWrapper;
+use Illuminate\Support\Arr;
 
 class DocumentDbTable extends BaseNoSqlDbTableResource
 {
@@ -49,9 +50,9 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
     {
         $record = static::validateAsArray($record, null, false, 'There are no fields in the record.');
 
-        $fields = array_get($extras, ApiOptions::FIELDS);
-        $idFields = array_get($extras, ApiOptions::ID_FIELD);
-        $idTypes = array_get($extras, ApiOptions::ID_TYPE);
+        $fields = Arr::get($extras, ApiOptions::FIELDS);
+        $idFields = Arr::get($extras, ApiOptions::ID_FIELD);
+        $idTypes = Arr::get($extras, ApiOptions::ID_TYPE);
 
         // slow, but workable for now, maybe faster than merging individuals
         $extras[ApiOptions::FIELDS] = ApiOptions::FIELDS_ALL;
@@ -90,10 +91,10 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
      */
     public function retrieveRecordsByFilter($table, $filter = null, $params = [], $extras = [])
     {
-        $fields = array_get($extras, ApiOptions::FIELDS);
+        $fields = Arr::get($extras, ApiOptions::FIELDS);
         $includeCounts = array_get_bool($extras, ApiOptions::INCLUDE_COUNT);
-        $limit = array_get($extras, 'limit', $this->getMaxRecordsReturnedLimit());
-        $orderBy = $this->cleanOrderBy($table, array_get($extras, 'order_by'));
+        $limit = Arr::get($extras, 'limit', $this->getMaxRecordsReturnedLimit());
+        $orderBy = $this->cleanOrderBy($table, Arr::get($extras, 'order_by'));
 
         if (empty($filter)) {
             if (!empty($orderBy)) {
@@ -101,11 +102,11 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                 /** @noinspection SqlNoDataSourceInspection */
                 $sql = "SELECT * FROM " . $table . ' ORDER BY ' . $orderBy;
                 $result =
-                    $this->getConnection()->queryDocument($table, $sql, $params, [Conn::OPT_LIMIT => $limit]);
+                    $this->getConnection()->queryDocument($table, $sql, $params, [DocumentDBConnection::OPT_LIMIT => $limit]);
             } else {
-                $result = $this->getConnection()->listDocuments($table, [Conn::OPT_LIMIT => $limit]);
+                $result = $this->getConnection()->listDocuments($table, [DocumentDBConnection::OPT_LIMIT => $limit]);
             }
-            $docs = array_get($result, 'Documents');
+            $docs = Arr::get($result, 'Documents');
             $out = static::cleanRecords($docs, $fields, static::ID_FIELD);
         } else {
             $params = [];
@@ -122,12 +123,12 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
             if (!empty($orderBy)) {
                 $sql .= ' ORDER BY ' . $orderBy;
             }
-            $result = $this->getConnection()->queryDocument($table, $sql, $params, [Conn::OPT_LIMIT => $limit]);
-            $out = array_get($result, 'Documents');
+            $result = $this->getConnection()->queryDocument($table, $sql, $params, [DocumentDBConnection::OPT_LIMIT => $limit]);
+            $out = Arr::get($result, 'Documents');
         }
 
         if (true === $includeCounts) {
-            $out['meta']['count'] = intval(array_get($result, '_count'));
+            $out['meta']['count'] = intval(Arr::get($result, '_count'));
         }
 
         return $out;
@@ -165,7 +166,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
         $continue = false,
         $single = false
     ) {
-        $fields = array_get($extras, ApiOptions::FIELDS);
+        $fields = Arr::get($extras, ApiOptions::FIELDS);
 
         $out = [];
         switch ($this->getAction()) {
@@ -180,14 +181,14 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
 
             case Verbs::PUT:
             case Verbs::PATCH:
-                if (!empty($update = array_get($extras, 'updates'))) {
+                if (!empty($update = Arr::get($extras, 'updates'))) {
                     if (!empty($update)) {
                         $update[static::ID_FIELD] = $id;
                         $record = $update;
                     }
                 }
 
-                $id = array_get($record, static::ID_FIELD);
+                $id = Arr::get($record, static::ID_FIELD);
                 if ($rollback) {
                     if (!empty($id)) {
                         try {
@@ -293,7 +294,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
         }
         $rollback = array_get_bool($extras, 'rollback');
         $continue = array_get_bool($extras, 'continue');
-        $fields = array_get($extras, ApiOptions::FIELDS);
+        $fields = Arr::get($extras, ApiOptions::FIELDS);
 
         $out = [];
         switch ($this->getAction()) {
@@ -314,7 +315,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                 $result = [];
                 $errors = [];
                 $records = $this->batchRecords;
-                $update = array_get($extras, 'updates');
+                $update = Arr::get($extras, 'updates');
 
                 if (!empty($update)) {
                     foreach ($this->batchIds as $id) {
@@ -324,7 +325,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                 }
 
                 foreach ($records as $record) {
-                    $id = array_get($record, static::ID_FIELD);
+                    $id = Arr::get($record, static::ID_FIELD);
                     if ($rollback) {
                         if (!empty($id)) {
                             try {
@@ -456,7 +457,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
             switch ($this->getAction()) {
                 case Verbs::POST:
                     foreach ($this->rollbackRecords as $rr) {
-                        $id = array_get($rr, static::ID_FIELD);
+                        $id = Arr::get($rr, static::ID_FIELD);
                         if (!empty($id)) {
                             $this->getConnection()->deleteDocument($this->transactionTable, $id);
                         }
@@ -465,7 +466,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                 case Verbs::PUT:
                 case Verbs::PATCH:
                     foreach ($this->rollbackRecords as $rr) {
-                        $id = array_get($rr, static::ID_FIELD);
+                        $id = Arr::get($rr, static::ID_FIELD);
                         if (!empty($id)) {
                             $this->getConnection()->replaceDocument($this->transactionTable, $rr, $id);
                         }
@@ -473,7 +474,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                     break;
                 case Verbs::DELETE:
                     foreach ($this->rollbackRecords as $rr) {
-                        $id = array_get($rr, static::ID_FIELD);
+                        $id = Arr::get($rr, static::ID_FIELD);
                         if (!empty($id)) {
                             $this->getConnection()->createDocument($this->transactionTable, $rr);
                         }
@@ -556,7 +557,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
         }
 
         $wrap = false;
-        if ((0 === strpos($filter, '(')) && ((strlen($filter) - 1) === strrpos($filter, ')'))) {
+        if ((str_starts_with($filter, '(')) && ((strlen($filter) - 1) === strrpos($filter, ')'))) {
             // remove unnecessary wrapping ()
             $filter = substr($filter, 1, -1);
             $wrap = true;
@@ -577,7 +578,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
             if (false !== $pos = stripos($filter, $paddedOp)) {
                 $field = trim(substr($filter, 0, $pos));
                 $negate = false;
-                if (false !== strpos($field, ' ')) {
+                if (str_contains($field, ' ')) {
                     $parts = explode(' ', $field);
                     $partsCount = count($parts);
                     if (($partsCount > 1) &&
@@ -597,7 +598,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
 
                 // make sure we haven't chopped off right side too much
                 $value = trim(substr($filter, $pos + strlen($paddedOp)));
-                if ((0 !== strpos($value, "'")) &&
+                if ((!str_starts_with($value, "'")) &&
                     (0 !== $lpc = substr_count($value, '(')) &&
                     ($lpc !== $rpc = substr_count($value, ')'))
                 ) {
@@ -607,7 +608,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
                     $rightParen = preg_replace('/\)/', '', $rightParen, $lpc - $rpc);
                 }
                 if (DbComparisonOperators::requiresValueList($sqlOp)) {
-                    if ((0 === strpos($value, '(')) && ((strlen($value) - 1) === strrpos($value, ')'))) {
+                    if ((str_starts_with($value, '(')) && ((strlen($value) - 1) === strrpos($value, ')'))) {
                         // remove wrapping ()
                         $value = substr($value, 1, -1);
                         $parsed = [];
@@ -659,7 +660,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
     protected function parseFilterValue($value, ColumnSchema $info, array &$out_params, array $in_params = [])
     {
         // if a named replacement parameter, un-name it because Laravel can't handle named parameters
-        if (is_array($in_params) && (0 === strpos($value, ':'))) {
+        if (is_array($in_params) && (str_starts_with($value, ':'))) {
             if (array_key_exists($value, $in_params)) {
                 $value = $in_params[$value];
             }
@@ -668,7 +669,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
         // remove quoting on strings if used, i.e. 1.x required them
         if (is_string($value)) {
 
-            if ((0 === strpos($value, '(')) && ((strlen($value) - 1) === strrpos($value, ')'))) {
+            if ((str_starts_with($value, '(')) && ((strlen($value) - 1) === strrpos($value, ')'))) {
                 // function call
                 return $value;
             }
@@ -726,7 +727,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
         if (!is_null($this->resourceId)) {
             $record = $this->getPayloadData();
             $record[static::ID_FIELD] = $this->resourceId;
-            $record = array_get($this->mergeRecords([$record]), 0);
+            $record = Arr::get($this->mergeRecords([$record]), 0);
 
             return $this->updateRecordById($tableName, $record, $this->resourceId, $options);
         }
@@ -736,10 +737,10 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
             throw new BadRequestException('No record(s) detected in request.' . ResourcesWrapper::getWrapperMsg());
         }
 
-        $ids = array_get($options, ApiOptions::IDS);
+        $ids = Arr::get($options, ApiOptions::IDS);
 
         if (!empty($ids)) {
-            $record = array_get($records, 0, $records);
+            $record = Arr::get($records, 0, $records);
             $newRecords = [];
             foreach (explode(',', $ids) as $id) {
                 $record[static::ID_FIELD] = $id;
@@ -748,10 +749,10 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
             $newRecords = $this->mergeRecords($newRecords);
             $result = $this->updateRecords($tableName, $newRecords, $options);
         } else {
-            $filter = array_get($options, ApiOptions::FILTER);
+            $filter = Arr::get($options, ApiOptions::FILTER);
             if (!empty($filter)) {
-                $record = array_get($records, 0, $records);
-                $params = array_get($options, ApiOptions::PARAMS, []);
+                $record = Arr::get($records, 0, $records);
+                $params = Arr::get($options, ApiOptions::PARAMS, []);
                 $result = $this->updateRecordsByFilter(
                     $tableName,
                     $record,
@@ -766,7 +767,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
             }
         }
 
-        $meta = array_get($result, 'meta');
+        $meta = Arr::get($result, 'meta');
         unset($result['meta']);
 
         $asList = $this->request->getParameterAsBool(ApiOptions::AS_LIST);
@@ -791,7 +792,7 @@ class DocumentDbTable extends BaseNoSqlDbTableResource
     protected function mergeRecords(array $records)
     {
         foreach ($records as $key => $record) {
-            if (null === $id = array_get($record, static::ID_FIELD)) {
+            if (null === $id = Arr::get($record, static::ID_FIELD)) {
                 throw new InternalServerErrorException('No ' .
                     static::ID_FIELD .
                     ' field found in supplied record(s). Cannot merge record(s) for PATCH operation.');

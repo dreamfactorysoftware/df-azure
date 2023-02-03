@@ -6,6 +6,7 @@ use DreamFactory\Core\Exceptions\RestException;
 use DreamFactory\DocumentDb\Client;
 use DreamFactory\DocumentDb\Resources\Collection;
 use DreamFactory\DocumentDb\Resources\Document;
+use Illuminate\Support\Arr;
 
 class DocumentDBConnection
 {
@@ -51,7 +52,7 @@ class DocumentDBConnection
      */
     public function setOptions(array $options)
     {
-        $limit = array_get($options, static::OPT_LIMIT);
+        $limit = Arr::get($options, static::OPT_LIMIT);
 
         if (!empty($limit)) {
             $this->setHeaders(['x-ms-max-item-count' => $limit]);
@@ -91,11 +92,11 @@ class DocumentDBConnection
         $coll->setHeaders($this->getHeaders());
         $rs = $coll->getAll();
         $this->checkResponse($rs);
-        $colls = array_get($rs, 'DocumentCollections');
+        $colls = Arr::get($rs, 'DocumentCollections');
         $list = [];
         if (!empty($colls)) {
             foreach ($colls as $coll) {
-                $list[] = array_get($coll, 'id');
+                $list[] = Arr::get($coll, 'id');
             }
         }
 
@@ -323,11 +324,11 @@ class DocumentDBConnection
      */
     protected function checkResponse(array $response)
     {
-        $responseCode = intval(array_get($response, '_curl_info.http_code'));
-        $message = array_get($response, 'message');
+        $responseCode = intval(Arr::get($response, '_curl_info.http_code'));
+        $message = Arr::get($response, 'message');
 
         if ($responseCode >= 400) {
-            $context = ['response_headers' => array_get($response, '_curl_info.response_headers')];
+            $context = ['response_headers' => Arr::get($response, '_curl_info.response_headers')];
             throw new RestException($responseCode, $message, null, null, $context);
         }
     }
