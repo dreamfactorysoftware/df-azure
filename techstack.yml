@@ -1,0 +1,39 @@
+repo_name: dreamfactorysoftware/df-azure
+report_id: 2e48fe168b09b1edae7acf517c810269
+repo_type: Public
+timestamp: '2023-12-06T22:36:45+00:00'
+requested_by: daniilly
+provider: github
+branch: master
+detected_tools_count: 3
+tools:
+- name: PHP
+  description: A popular general-purpose scripting language that is especially suited
+    to web development
+  website_url: http://www.php.net/
+  open_source: true
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Languages
+  image_url: https://img.stackshare.io/service/991/hwUcGZ41_400x400.jpg
+  detection_source: Repo Metadata
+- name: Azure Storage
+  description: Reliable, economical cloud storage for data big and small
+  website_url: http://azure.microsoft.com/en-us/services/storage/
+  open_source: false
+  hosted_saas: true
+  category: Data Stores
+  sub_category: Cloud Storage
+  image_url: https://img.stackshare.io/service/2099/azureStorage.png
+  detection_source: composer.json
+  last_updated_by: Danil Lytvyn
+  last_updated_on: 2023-02-03 15:18:15.000000000 Z
+- name: Git
+  description: Fast, scalable, distributed revision control system
+  website_url: http://git-scm.com/
+  open_source: true
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Version Control System
+  image_url: https://img.stackshare.io/service/1046/git.png
+  detection_source: Repo Metadata
