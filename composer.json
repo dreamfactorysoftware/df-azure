@@ -1,6 +1,7 @@
 {
   "name":        "dreamfactory/df-azure",
   "description": "Microsoft Azure package containing Azure services for the DreamFactory Platform 2.0.",
+  "version":     "0.19.99",
   "keywords":    [
     "dreamfactory",
     "laravel",
@@ -30,12 +31,21 @@
   "minimum-stability": "dev",
   "prefer-stable":     true,
   "require":     {
+    "php":                                   "^8.3",
+    "laravel/helpers":                       "^1.8",
     "dreamfactory/df-database":              "~1.4.0",
     "dreamfactory/df-file":                  "~0.8",
     "microsoft/azure-storage-common":        "~1.5.2",
     "microsoft/azure-storage-blob":          "~1.5.4",
     "microsoft/azure-storage-table":         "~1.1.6",
     "dreamfactory/azure-documentdb-php-sdk": "~0.2.0"
+  },
+  "require-dev": {
+    "laravel/framework":     "^13.7",
+    "mockery/mockery":       "^1.6",
+    "nunomaduro/collision":  "^8.6",
+    "phpunit/phpunit":       "^11.5.3",
+    "orchestra/testbench":   "^11.0"
   },
   "autoload":    {
     "psr-4": {
