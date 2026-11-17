@@ -1,7 +1,6 @@
 {
   "name":        "dreamfactory/df-azure",
   "description": "Microsoft Azure package containing Azure services for the DreamFactory Platform 2.0.",
-  "version":     "0.19.99",
   "keywords":    [
     "dreamfactory",
     "laravel",
