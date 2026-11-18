@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.19.1] - 2026-11-18
+- Laravel 13 package metadata (PHP 8.3 or later).
+
 ## [0.15.2] - 2018-11-15
 ### Changed
 - DF-1421 - Azure Blog Storage double encoding issue
